@@ -48,3 +48,11 @@ export const tn = (n: number, one: string, many: string, vars: Record<string, st
 /** Locale for dates and times (Indian formats, in the chosen language). */
 export const localeFor = (l: Lang) => (l === 'hi' ? 'hi-IN' : l === 'gu' ? 'gu-IN' : 'en-IN');
 export const locale = () => localeFor(current);
+
+/** Month style for dates in sentences: English abbreviates ("20 Nov"); Hindi/Gujarati abbreviations look odd ("नव॰", "નવે"), so write the full name. */
+export const monthFor = (l: Lang) => (l === 'en' ? 'short' : 'long') as 'short' | 'long';
+export const shortMonth = () => monthFor(current);
+
+/** Clock time like "7:36 PM" in every language (same look as formatTime; avoids "7:36 pm बजे" style locale output). */
+export const timeOf = (d: Date, timeZone?: string) =>
+  d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', ...(timeZone ? { timeZone } : {}) });

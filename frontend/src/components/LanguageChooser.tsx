@@ -30,14 +30,21 @@ export default function LanguageChooser() {
   );
 }
 
-/** Settings card. Changing the language reloads the app so every screen redraws. */
+/** Settings card: one compact row. Changing the language reloads the app so every screen redraws. */
 export function LanguageCard() {
   const current = getLang();
   return (
     <div className="card p-4 mb-4">
-      <p className="text-sm font-semibold text-gray-900 dark:text-white mb-0.5">Language · भाषा · ભાષા</p>
-      <p className="text-xs text-gray-400 mb-3">{current === 'en' ? 'Screens and notifications' : current === 'hi' ? 'स्क्रीन और नोटिफिकेशन' : 'સ્ક્રીન અને નોટિફિકેશન'}</p>
-      <LangButtons current={current} onPick={l => { if (l !== current) setLang(l); }} />
+      <p className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Language · भाषा · ભાષા</p>
+      <div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-gray-100 dark:bg-[#2C2C2E]">
+        {LANGS.map(l => (
+          <button key={l.code} type="button" onClick={() => { if (l.code !== current) setLang(l.code); }} aria-pressed={current === l.code}
+            lang={l.code === 'en' ? 'en' : `${l.code}-IN`}
+            className={`py-2.5 rounded-lg text-[15px] font-medium ${current === l.code ? 'bg-white dark:bg-[#1C1C1E] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
+            {l.name}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

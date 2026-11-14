@@ -8,7 +8,7 @@ import { doseMeta } from '../utils/dose';
 import { isMissedEntry } from '../utils/insights';
 import type { TaskInstance } from '../types';
 import { SkeletonList } from '../components/ui/Skeleton';
-import { t, tIn, getLang, localeFor, LANGS, type Lang } from '../lib/i18n';
+import { t, tIn, getLang, localeFor, LANGS, type Lang, monthFor, timeOf} from '../lib/i18n';
 
 const RANGES = [7, 30, 90];
 const shift = (date: string, n: number) => { const d = new Date(date + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
@@ -27,9 +27,9 @@ export default function Report() {
   const setRl = (l: Lang) => { setRlState(l); try { localStorage.setItem(RLANG_KEY, l); } catch { /* ignore */ } };
   const R = (s: string, v?: Record<string, string | number>) => tIn(rl, s, v);
   const loc = localeFor(rl);
-  const long = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString(loc, { day: 'numeric', month: 'short', year: 'numeric' });
-  const dayLabel = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString(loc, { weekday: 'short', day: 'numeric', month: 'short' });
-  const clock = (iso?: string) => iso ? new Date(iso).toLocaleTimeString(loc, { timeZone: 'Asia/Kolkata', hour: 'numeric', minute: '2-digit' }) : '';
+  const long = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString(loc, { day: 'numeric', month: monthFor(rl), year: 'numeric' });
+  const dayLabel = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString(loc, { weekday: 'short', day: 'numeric', month: monthFor(rl) });
+  const clock = (iso?: string) => iso ? timeOf(new Date(iso), 'Asia/Kolkata') : '';
   const today = getTodayIST();
   const from = shift(today, -(days - 1));
   const byId = useMemo(() => new Map(reminders.map(r => [r.id, r])), [reminders]);
@@ -112,7 +112,7 @@ export default function Report() {
         <header className="border-b border-gray-200 pb-3 mb-3">
           <h2 className="text-lg font-bold">{habits ? R('Medication record & habits') : R('Medication record')}</h2>
           <p>{profile.display_name || user?.email}</p>
-          <p className="text-gray-500">{long(from)} – {long(today)} · {R('made')} {new Date().toLocaleString(loc, { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</p>
+          <p className="text-gray-500">{long(from)} – {long(today)} · {R('made')} {`${new Date().toLocaleDateString(loc, { timeZone: 'Asia/Kolkata', day: 'numeric', month: monthFor(rl) })}, ${timeOf(new Date(), 'Asia/Kolkata')}`}</p>
         </header>
 
         {!fresh && rows.length === 0 && sos.length === 0 ? (

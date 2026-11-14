@@ -4,12 +4,12 @@ import { useApp } from '../context/AppContext';
 import { getTodayIST } from '../utils/dateHelpers';
 import { isPausedOn } from '../utils/schedule';
 import Rich from './ui/Rich';
-import { t, locale } from '../lib/i18n';
+import { t, locale, shortMonth} from '../lib/i18n';
 
 const addDays = (date: string, n: number) => {
   const d = new Date(date + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10);
 };
-const pretty = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: 'short' });
+const pretty = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: shortMonth() });
 const QUICK = [{ label: t('3 days'), days: 3 }, { label: t('1 week'), days: 7 }, { label: t('2 weeks'), days: 14 }];
 const MAX_DAYS = 60;
 

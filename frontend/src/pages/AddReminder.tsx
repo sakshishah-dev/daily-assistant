@@ -8,7 +8,7 @@ import type { Category, RepeatType, MealRelation, NotificationSlot, Reminder, St
 import toast from 'react-hot-toast';
 import { getTodayIST, formatTime } from '../utils/dateHelpers';
 import { stockStatus, courseEndFromDays, parseDosage } from '../utils/schedule';
-import { t as tr, locale } from '../lib/i18n';
+import { t as tr, locale, shortMonth} from '../lib/i18n';
 
 /** Quick-add templates. Medicine templates set up the PATTERN only — never a medicine name or dose
  *  (the app must not recommend medicines or doses). Habit templates fill everything in. */
@@ -83,7 +83,7 @@ function repeatSummary(mode: RepeatMode, weekDays: number[], monthDates: number[
     if (!monthDates.length) return tr('Pick the dates below');
     return tr('On the {dates} of every month', { dates: joinList(monthDates.map(ordinal)) });
   }
-  return tr('Once, on {date}', { date: new Date(onceDate + 'T00:00:00').toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: 'short' }) });
+  return tr('Once, on {date}', { date: new Date(onceDate + 'T00:00:00').toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: shortMonth() }) });
 }
 
 function uid() {
@@ -552,7 +552,7 @@ function AddReminderForm() {
               {courseMode !== 'ongoing' && !errors.course && (
                 <span className="text-xs font-medium text-brand-600 dark:text-brand-400">
                   {tr('Ends')} {new Date((courseMode === 'days' ? courseEndFromDays(courseStart, Number(courseDays) || 1) : courseEnd) + 'T00:00:00')
-                    .toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: 'short' })}
+                    .toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: shortMonth() })}
                 </span>
               )}
               {errors.course && <span className="text-xs font-medium text-red-500">{errors.course}</span>}
