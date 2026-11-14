@@ -36,8 +36,8 @@ export default function WaterSetup() {
 
   return (
     <div className="page pt-4 pb-0">
-      <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => navigate(-1)} className="btn-icon"><ArrowLeft size={20} /></button>
+      <div className="page-header">
+        <button onClick={() => navigate(-1)} className="btn-icon" aria-label={t('Back')}><ArrowLeft size={20} /></button>
         <h1 className="page-title">{t('Drink water')}</h1>
       </div>
 
@@ -96,7 +96,7 @@ export default function WaterSetup() {
       )}
       <p className="text-xs text-gray-400 text-center mb-4">{t("Water doesn't count in your medicine score.")}</p>
 
-      <div className="sticky bottom-0 -mx-4 px-4 pt-3 mt-2 bg-cream/95 dark:bg-[#0E0E10]/95 backdrop-blur space-y-2"
+      <div className="sticky bottom-[calc(60px+env(safe-area-inset-bottom,0px))] -mx-4 px-4 pt-3 mt-2 bg-cream dark:bg-[#0E0E10] space-y-2"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
         <button onClick={save} disabled={!valid} className="btn-primary w-full disabled:opacity-50">
           {isOn ? t('Save changes') : t('Start water reminders')}

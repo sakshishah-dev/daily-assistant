@@ -303,8 +303,8 @@ function AddReminderForm() {
   return (
     <div className="page pt-4 pb-0">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => navigate(-1)} className="btn-icon"><ArrowLeft size={20} /></button>
+      <div className="page-header">
+        <button onClick={() => navigate(-1)} className="btn-icon" aria-label={tr('Back')}><ArrowLeft size={20} /></button>
         <h1 className="page-title">{familyMode ? (isEdit ? tr("Edit {name}'s medicine", { name: familyMode.name }) : tr('Medicine for {name}', { name: familyMode.name })) : isEdit ? tr('Edit Reminder') : tr('Add Reminder')}</h1>
       </div>
 
@@ -698,7 +698,7 @@ function AddReminderForm() {
         </>
       )}
 
-      <div className="sticky bottom-0 -mx-4 px-4 pt-3 mt-2 bg-cream/95 dark:bg-[#0E0E10]/95 backdrop-blur"
+      <div className="sticky bottom-0 -mx-4 px-4 pt-3 mt-2 bg-cream dark:bg-[#0E0E10]"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
         <button onClick={handleSave} disabled={saving} className="btn-primary w-full disabled:opacity-60">
           {isEdit ? tr('Save changes') : tr('Add reminder')}

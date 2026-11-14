@@ -73,7 +73,7 @@ export default function FamilyPerson() {
 
   return (
     <div className="page pt-4">
-      <div className="flex items-center gap-3 mb-4">
+      <div className="page-header">
         <button onClick={() => navigate('/family')} className="btn-icon" aria-label={tr('Back')}><ArrowLeft size={20} /></button>
         <div className="flex-1 min-w-0">
           <h1 className="page-title truncate">{name}</h1>

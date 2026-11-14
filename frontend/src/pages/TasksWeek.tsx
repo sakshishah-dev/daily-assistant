@@ -45,9 +45,9 @@ export default function TasksWeek() {
   }) ?? [];
 
   return (
-    <div className="page pt-6">
-      <div className="flex items-center gap-3 mb-5">
-        <Link to="/tasks" className="btn-icon" aria-label={tr('Back')}><ArrowLeft size={18} /></Link>
+    <div className="page pt-4">
+      <div className="page-header">
+        <Link to="/tasks" className="btn-icon" aria-label={tr('Back')}><ArrowLeft size={20} /></Link>
         <h1 className="page-title">{tr('Weekly Progress')}</h1>
       </div>
 
