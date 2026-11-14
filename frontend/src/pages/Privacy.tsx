@@ -44,10 +44,10 @@ const SECTIONS: { title: string; body: string[] }[] = [
 export default function Privacy() {
   const navigate = useNavigate();
   return (
-    <div className="page pt-6 max-w-[480px] mx-auto">
-      <div className="flex items-center gap-3 mb-5">
+    <div className="page pt-4 max-w-[480px] mx-auto">
+      <div className="page-header">
         <button onClick={() => (history.length > 1 ? navigate(-1) : navigate('/'))} className="btn-icon" aria-label={t('Back')}>
-          <ArrowLeft size={18} />
+          <ArrowLeft size={20} />
         </button>
         <h1 className="page-title">{t('Privacy & terms')}</h1>
       </div>

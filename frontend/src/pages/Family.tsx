@@ -53,7 +53,7 @@ export default function Family() {
 
   return (
     <div className="page pt-4">
-      <div className="flex items-center gap-3 mb-2">
+      <div className="page-header !mb-3">
         <button onClick={() => navigate(-1)} className="btn-icon" aria-label={tr('Back')}><ArrowLeft size={20} /></button>
         <h1 className="page-title flex-1">{tr('Family')}</h1>
         <Link to="/family/add" className="btn-primary py-2 px-3 text-sm"><Plus size={15} /> {tr('Add')}</Link>

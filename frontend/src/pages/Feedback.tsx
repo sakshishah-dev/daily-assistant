@@ -29,9 +29,9 @@ export default function Feedback() {
   };
 
   return (
-    <div className="page pt-6">
-      <div className="flex items-center gap-3 mb-5">
-        <button onClick={() => navigate(-1)} className="btn-icon" aria-label={t('Back')}><ArrowLeft size={18} /></button>
+    <div className="page pt-4">
+      <div className="page-header">
+        <button onClick={() => navigate(-1)} className="btn-icon" aria-label={t('Back')}><ArrowLeft size={20} /></button>
         <h1 className="page-title">{t('Send feedback')}</h1>
       </div>
       <form onSubmit={submit} className="card p-4">

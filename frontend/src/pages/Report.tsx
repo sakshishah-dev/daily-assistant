@@ -74,7 +74,7 @@ export default function Report() {
 
   return (
     <div className="page pt-4">
-      <div className="flex items-center gap-3 mb-4 print:hidden">
+      <div className="page-header print:hidden">
         <button onClick={() => navigate(-1)} className="btn-icon" aria-label={t('Back')}><ArrowLeft size={20} /></button>
         <h1 className="page-title">{t('Doctor report')}</h1>
       </div>

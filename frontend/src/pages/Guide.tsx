@@ -30,8 +30,8 @@ export default function Guide() {
   };
 
   return (
-    <div className="min-h-screen px-4 pt-4 pb-24 max-w-[520px] mx-auto">
-      <div className="flex items-center gap-3 mb-4">
+    <div className="min-h-screen px-4 pt-4 pb-24 max-w-[480px] mx-auto">
+      <div className="page-header">
         <button onClick={() => (history.length > 1 ? navigate(-1) : navigate('/'))} className="btn-icon" aria-label={t('Back')}><ArrowLeft size={20} /></button>
         <h1 className="page-title flex-1">{t('What you can do')}</h1>
         <button onClick={share} className="btn-icon" aria-label={t('Share this page')}><Share2 size={18} /></button>

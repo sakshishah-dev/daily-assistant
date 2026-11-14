@@ -13,7 +13,8 @@
 
 @layer base {
   * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  /* html gets the page colour too, so rubber-band scrolling on iPhone never shows a different colour behind the tab bar */
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; @apply bg-cream dark:bg-[#0E0E10]; overscroll-behavior-y: none; }
   body { overflow-x: hidden; }
   /* No visible scrollbars anywhere — scrolling still works (touch, trackpad, wheel). */
   html, body, * { scrollbar-width: none; -ms-overflow-style: none; }
@@ -57,6 +58,9 @@
   /* Full-screen forms hide the tab bar, so they don't need the space reserved for it */
   .app-shell.no-tabbar { padding-bottom: 0; }
 
+  /* Header row of every sub-page: back button + title */
+  .page-header { @apply flex items-center gap-3 mb-5; }
+
   .page {
     @apply px-4 pb-8;
     padding-top: max(env(safe-area-inset-top, 0px), 0px);
@@ -66,8 +70,10 @@
   .bottom-nav {
     @apply fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto;
     @apply flex justify-around items-center;
-    @apply bg-white/90 dark:bg-[#161618]/95 backdrop-blur-xl;
+    /* Solid colour and no blur: blurred fixed bars jump around during iPhone momentum scrolling and let the page show through */
+    @apply bg-white dark:bg-[#161618];
     @apply border-t border-gray-100 dark:border-[#2C2C2E] z-50;
+    transform: translate3d(0, 0, 0); -webkit-transform: translate3d(0, 0, 0); will-change: transform;
     height: calc(60px + env(safe-area-inset-bottom, 0px));
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }

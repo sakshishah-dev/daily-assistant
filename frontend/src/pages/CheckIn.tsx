@@ -88,7 +88,7 @@ export default function CheckIn() {
   if (!items.length) {
     return (
       <div className="page pt-6">
-        <button onClick={() => navigate('/')} className="btn-icon mb-2" aria-label={tr('Back')}><ArrowLeft size={18} /></button>
+        <button onClick={() => navigate('/')} className="btn-icon mb-2" aria-label={tr('Back')}><ArrowLeft size={20} /></button>
         <EmptyState title={tr('Nothing to check in')} text={tr("There's nothing scheduled for {slot} today.", { slot: label })}
           action={<Link to="/" className="btn-primary">{tr('Go to Today')}</Link>} />
       </div>
@@ -100,7 +100,7 @@ export default function CheckIn() {
       {/* Header band */}
       <div className="-mx-4 px-5 pt-6 pb-12 rounded-b-[28px] bg-gradient-to-br from-brand-600 to-brand-700 dark:from-[#1C1C1E] dark:to-[#1C1C1E]">
         <button onClick={() => navigate('/')} className="w-9 h-9 rounded-full bg-white/15 text-white flex items-center justify-center mb-4" aria-label={tr('Back')}>
-          <ArrowLeft size={18} />
+          <ArrowLeft size={20} />
         </button>
         <p className="text-xs text-white/70">{dateLabel}{time ? ` · ${formatTime(time)}` : ''}</p>
         <h1 className="text-[22px] font-bold text-white"><SlotIcon size={22} strokeWidth={1.8} className="inline -mt-1 mr-2" />{tr('{slot} check-in', { slot: label })}</h1>
@@ -164,7 +164,7 @@ export default function CheckIn() {
         </div>
       )}
 
-      <div className="sticky bottom-0 -mx-4 px-4 pt-3 bg-cream/95 dark:bg-[#0E0E10]/95 backdrop-blur"
+      <div className="sticky bottom-0 -mx-4 px-4 pt-3 bg-cream dark:bg-[#0E0E10]"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
         <button onClick={submit} className="btn-primary w-full py-3.5 text-[15px]">
           <Check size={18} strokeWidth={3} /> {tr('Submit {slot}', { slot: label })}
