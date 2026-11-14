@@ -58,7 +58,7 @@ export default function Family() {
         <h1 className="page-title flex-1">{tr('Family')}</h1>
         <Link to="/family/add" className="btn-primary py-2 px-3 text-sm"><Plus size={15} /> {tr('Add')}</Link>
       </div>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">{tr('Keep an eye on each other\'s medicines. Only medicines are shared — habits, water and daily tasks stay private.')}</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">{tr('Keep an eye on each other\'s medicines. Only medicines are shared. Habits, water and daily tasks stay private.')}</p>
 
       {error && <div className="card p-4 mb-4 text-sm text-red-500">{error}</div>}
 
@@ -129,7 +129,7 @@ function PersonCard({ p }: { p: FamilyPerson }) {
         <span className="text-gray-300">›</span>
       </div>
       {!d ? <Skeleton className="h-3.5 w-40 mt-2" /> : d.paused ? (
-        <p className="text-xs text-saffron-600 mt-1">{tr('🌴 On holiday — reminders paused')}</p>
+        <p className="text-xs text-saffron-600 mt-1">{tr('On holiday: reminders paused')}</p>
       ) : d.today.length === 0 ? (
         <p className="text-xs text-gray-400 mt-1">{tr('No medicines today')}</p>
       ) : (
@@ -146,7 +146,7 @@ function PersonCard({ p }: { p: FamilyPerson }) {
           </p>
         </>
       )}
-      {d && d.low.length > 0 && <p className="text-xs text-saffron-600 mt-1">🧴 {tr('{names} running low', { names: d.low.map(l => l.r.title).join(', ') })}</p>}
+      {d && d.low.length > 0 && <p className="text-xs text-saffron-600 mt-1">{tr('{names} running low', { names: d.low.map(l => l.r.title).join(', ') })}</p>}
     </Link>
   );
 }

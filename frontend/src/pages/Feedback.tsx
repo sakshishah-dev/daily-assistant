@@ -15,7 +15,7 @@ export default function Feedback() {
     e.preventDefault();
     const text = message.trim();
     if (!text) return;
-    if (isDemo()) { toast(t('Feedback is turned off in the demo — thanks for trying it!'), { icon: '💜' }); navigate('/settings'); return; }
+    if (isDemo()) { toast(t('Feedback is turned off in the demo. Thanks for trying it!')); navigate('/settings'); return; }
     setBusy(true);
     const { error } = await supabase.from('feedback').insert({
       message: text.slice(0, 2000),
@@ -23,8 +23,8 @@ export default function Feedback() {
       user_agent: navigator.userAgent.slice(0, 300),
     });
     setBusy(false);
-    if (error) { toast.error(t('Could not send — check your connection')); return; }
-    toast.success(t('Thank you! Feedback sent 💜'));
+    if (error) { toast.error(t('Could not send. Check your connection')); return; }
+    toast.success(t('Thank you! Feedback sent'));
     navigate('/settings');
   };
 
@@ -36,7 +36,7 @@ export default function Feedback() {
       </div>
       <form onSubmit={submit} className="card p-4">
         <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-          {t('Something not working, confusing, or missing? Tell us — every message is read.')}
+          {t('Something not working, confusing, or missing? Tell us: every message is read.')}
         </p>
         <textarea
           className="input min-h-[160px] mb-2" maxLength={2000} placeholder={t('Type your feedback…')}

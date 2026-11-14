@@ -113,7 +113,7 @@ export default function CalendarPage({ embedded = false }: { embedded?: boolean 
       <div className="flex gap-4 mb-5 px-1">
         {[
           { color: '#10b981', label: '≥ 70%' },
-          { color: '#f59e0b', label: '40–70%' },
+          { color: '#f59e0b', label: '40-70%' },
           { color: '#ef4444', label: '< 40%'  },
         ].map(l => (
           <div key={l.label} className="flex items-center gap-1.5">

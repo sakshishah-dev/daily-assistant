@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, ChevronDown } from 'lucide-react';
+import CategoryIcon from '../components/ui/CategoryIcon';
 import { Skeleton } from '../components/ui/Skeleton';
 import { useApp } from '../context/AppContext';
 import { CATEGORIES, NOTIFICATION_SLOTS, SLOT_ORDER, DAYS_SHORT } from '../utils/constants';
@@ -13,22 +14,22 @@ import { t as tr, locale, shortMonth} from '../lib/i18n';
 /** Quick-add templates. Medicine templates set up the PATTERN only — never a medicine name or dose
  *  (the app must not recommend medicines or doses). Habit templates fill everything in. */
 interface Template {
-  label: string; emoji: string; category: Category; title?: string;
+  label: string; category: Category; title?: string;
   slots: NotificationSlot[]; mode?: 'daily' | 'days'; weekly?: boolean; courseDays?: number; asNeeded?: boolean;
 }
 const MEDICINE_TEMPLATES: Template[] = [
-  { label: tr('Once daily'),   emoji: '☀️', category: 'medicine', slots: ['morning'] },
-  { label: tr('Twice daily'),  emoji: '🌗', category: 'medicine', slots: ['morning', 'after_dinner'] },
-  { label: tr('Weekly'),       emoji: '📅', category: 'medicine', slots: ['morning'], weekly: true },
-  { label: tr('5-day course'), emoji: '⏳', category: 'medicine', slots: ['morning', 'after_dinner'], courseDays: 5 },
-  { label: tr('As needed (SOS)'), emoji: '🆘', category: 'medicine', slots: ['morning'], asNeeded: true },
+  { label: tr('Once daily'),   category: 'medicine', slots: ['morning'] },
+  { label: tr('Twice daily'),  category: 'medicine', slots: ['morning', 'after_dinner'] },
+  { label: tr('Weekly'),       category: 'medicine', slots: ['morning'], weekly: true },
+  { label: tr('5-day course'), category: 'medicine', slots: ['morning', 'after_dinner'], courseDays: 5 },
+  { label: tr('As needed (SOS)'), category: 'medicine', slots: ['morning'], asNeeded: true },
 ];
 const HABIT_TEMPLATES: Template[] = [
-  { label: tr('Morning walk'),  emoji: '🚶', category: 'habit',   title: tr('Morning walk'),  slots: ['morning'] },
-  { label: tr('Sleep on time'), emoji: '😴', category: 'habit',   title: tr('Sleep on time'), slots: ['overall'] },
-  { label: tr('Read'),          emoji: '📖', category: 'habit',   title: tr('Read 10 pages'), slots: ['after_dinner'] },
-  { label: tr('Meditate'),      emoji: '🧘', category: 'habit',   title: tr('Meditate'),      slots: ['morning'] },
-  { label: tr('Stretch'),       emoji: '🤸', category: 'routine', title: tr('Stretch'),       slots: ['afternoon'] },
+  { label: tr('Morning walk'),  category: 'habit',   title: tr('Morning walk'),  slots: ['morning'] },
+  { label: tr('Sleep on time'), category: 'habit',   title: tr('Sleep on time'), slots: ['overall'] },
+  { label: tr('Read'),          category: 'habit',   title: tr('Read 10 pages'), slots: ['after_dinner'] },
+  { label: tr('Meditate'),      category: 'habit',   title: tr('Meditate'),      slots: ['morning'] },
+  { label: tr('Stretch'),       category: 'routine', title: tr('Stretch'),       slots: ['afternoon'] },
 ];
 
 const STOCK_UNITS: StockUnit[] = ['tablets', 'capsules', 'ml', 'doses', 'sachets', 'drops'];
@@ -75,7 +76,7 @@ function repeatSummary(mode: RepeatMode, weekDays: number[], monthDates: number[
   if (mode === 'days') {
     if (!weekDays.length) return tr('Pick the days below');
     if (weekDays.length === 7) return tr('Every day');
-    if (weekDays.join() === '0,1,2,3,4') return tr('Every weekday (Mon–Fri)');
+    if (weekDays.join() === '0,1,2,3,4') return tr('Every weekday (Mon-Fri)');
     if (weekDays.join() === '5,6') return tr('Every weekend');
     return tr('Every {days}', { days: joinList(weekDays.map(i => DAYS_SHORT[i])) });
   }
@@ -119,7 +120,7 @@ function AddReminderForm() {
   const [title,       setTitle]      = useState(existing?.title ?? '');
   // One optional note. Older reminders may have both a description and notes — merge them.
   const [note,        setNote]       = useState(
-    [existing?.description, existing?.notes].filter(Boolean).join(' — ')
+    [existing?.description, existing?.notes].filter(Boolean).join(': ')
   );
   const [category,    setCategory]   = useState<Category>(existing?.category ?? 'medicine');
   const [slots,       setSlots]      = useState<NotificationSlot[]>(existing?.slots ?? ['morning']);
@@ -317,7 +318,7 @@ function AddReminderForm() {
                 className={`flex-shrink-0 snap-start px-3 py-2 rounded-full text-[13px] font-medium border transition-all ${
                   appliedTemplate === t.label ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-white/[0.06] dark:text-brand-300'
                   : 'border-gray-200 dark:border-[#3A3A3C] text-gray-700 dark:text-gray-300 bg-white dark:bg-[#1C1C1E]'}`}>
-                {t.emoji} {t.label}
+                {t.label}
               </button>
             ))}
           </div>
@@ -325,7 +326,7 @@ function AddReminderForm() {
             {!familyMode && (
             <button type="button" onClick={() => navigate('/water')}
               className="flex-shrink-0 snap-start px-3 py-2 rounded-full text-[13px] font-medium border border-sky-200 dark:border-sky-500/30 text-sky-800 dark:text-sky-300 bg-sky-50 dark:bg-sky-500/10">
-              💧 {tr('Drink water')}
+              {tr('Drink water')}
             </button>
             )}
             {(familyMode ? [] : HABIT_TEMPLATES).map(t => (
@@ -333,12 +334,12 @@ function AddReminderForm() {
                 className={`flex-shrink-0 snap-start px-3 py-2 rounded-full text-[13px] font-medium border transition-all ${
                   appliedTemplate === t.label ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-white/[0.06] dark:text-brand-300'
                   : 'border-gray-200 dark:border-[#3A3A3C] text-gray-700 dark:text-gray-300 bg-white dark:bg-[#1C1C1E]'}`}>
-                {t.emoji} {t.label}
+                {t.label}
               </button>
             ))}
           </div>
           {appliedTemplate && MEDICINE_TEMPLATES.some(t => t.label === appliedTemplate) && (
-            <p className="text-[11px] text-gray-400 mt-1.5">{tr('Timing is set — add the name and dose as prescribed.')}</p>
+            <p className="text-[11px] text-gray-400 mt-1.5">{tr('Timing is set. Add the name and dose as prescribed.')}</p>
           )}
         </div>
       )}
@@ -366,7 +367,7 @@ function AddReminderForm() {
               }`}
             >
               <span className="text-lg block mb-0.5">
-                {k === 'medicine' ? '💊' : k === 'habit' ? '✨' : k === 'routine' ? '🔄' : '✅'}
+                <CategoryIcon category={k} />
               </span>
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{c.label}</span>
             </button>
@@ -407,7 +408,7 @@ function AddReminderForm() {
             className="w-full flex items-center justify-between p-3 rounded-xl border border-gray-200 dark:border-[#3A3A3C] bg-white dark:bg-[#1C1C1E]">
             <span className="text-left">
               <span className="block text-sm font-medium text-gray-800 dark:text-gray-100">{tr('Only when needed (SOS)')}</span>
-              <span className="block text-xs text-gray-400">{asNeeded ? tr('No reminders — tap “Took one” on Today') : tr('Off — reminds you on a schedule')}</span>
+              <span className="block text-xs text-gray-400">{asNeeded ? tr('No reminders: tap “Took one” on Today') : tr('Off: reminds you on a schedule')}</span>
             </span>
             <span className={`w-11 h-6 rounded-full p-0.5 transition-colors flex-shrink-0 ${asNeeded ? 'bg-brand-600' : 'bg-gray-300 dark:bg-[#3A3A3C]'}`}>
               <span className={`block w-5 h-5 rounded-full bg-white shadow transition-transform ${asNeeded ? 'translate-x-5' : ''}`} />
@@ -428,14 +429,14 @@ function AddReminderForm() {
         <p className="text-xs text-gray-400 dark:text-gray-500 mb-2.5">{tr('Tap 2 or 3 for more than once a day.')}</p>
         <div className="grid grid-cols-2 gap-2">
           {SLOT_ORDER.map(s => {
-            const def      = NOTIFICATION_SLOTS[s];
+            const def      = NOTIFICATION_SLOTS[s]; const SlotIcon = def.icon;
             const selected = !useCustomTime && slots.includes(s);
             return (
               <button key={s} onClick={() => { setCustom(false); toggleSlot(s); }}
                 className={`p-3 rounded-xl border-2 flex items-center gap-2.5 transition-all ${
                   selected ? 'border-brand-500 bg-brand-50 dark:bg-white/[0.06]' : 'border-gray-200 dark:border-[#2C2C2E]'
                 }`}>
-                <span className="text-xl">{def.emoji}</span>
+                <span className={selected ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400'}><SlotIcon size={20} strokeWidth={1.8} /></span>
                 <div className="text-left min-w-0">
                   <p className={`text-sm font-semibold ${selected ? 'text-brand-600 dark:text-brand-400' : 'text-gray-700 dark:text-gray-300'}`}>
                     {def.label}
@@ -456,7 +457,7 @@ function AddReminderForm() {
               : 'border-dashed border-gray-300 dark:border-[#2C2C2E] text-gray-400'
           }`}
         >
-          {useCustomTime ? tr('✓ Exact time') : tr('+ Pick an exact time')}
+          {useCustomTime ? tr('Exact time') : tr('+ Pick an exact time')}
         </button>
         {useCustomTime && (
           <input type="time" className="input mt-2" value={customTime} onChange={e => setCustomTime(e.target.value)} />
@@ -633,7 +634,7 @@ function AddReminderForm() {
                   </select>
                   {!sos && courseMode !== 'ongoing' && courseLength !== null && (
                     <p className="text-[11px] text-brand-600 dark:text-brand-400 mt-1.5">
-                      {tr("{n}-day course — we'll only warn if it runs out before the last day.", { n: courseLength })}
+                      {tr("{n}-day course: we'll only warn if it runs out before the last day.", { n: courseLength })}
                     </p>
                   )}
                 </div>

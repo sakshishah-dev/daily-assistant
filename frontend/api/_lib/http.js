@@ -10,7 +10,7 @@ export async function requireUser(req, res) {
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
   if (!token) { json(res, 401, { error: 'Not signed in' }); return null; }
   const { data, error } = await admin().auth.getUser(token);
-  if (error || !data?.user) { json(res, 401, { error: 'Session expired — please sign in again' }); return null; }
+  if (error || !data?.user) { json(res, 401, { error: 'Session expired: please sign in again' }); return null; }
   return data.user;
 }
 

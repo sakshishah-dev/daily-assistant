@@ -23,8 +23,8 @@ export default function Setup() {
 
   const enable = async () => {
     const ok = await subscribe();
-    if (ok) toast.success(t('Notifications are on 🔔'), { id: 'setup' });
-    else toast.error(status === 'denied' ? t('Notifications are blocked — see the tip below') : t('Could not turn on notifications'), { id: 'setup' });
+    if (ok) toast.success(t('Notifications are on'), { id: 'setup' });
+    else toast.error(status === 'denied' ? t('Notifications are blocked. See the tip below') : t('Could not turn on notifications'), { id: 'setup' });
   };
   const test = async () => {
     setTesting(true);
@@ -60,9 +60,9 @@ export default function Setup() {
         {status === 'checking' ? (
           <Skeleton className="h-12 w-full rounded-2xl" />
         ) : needsInstall ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t('On iPhone this only works in the app from your Home Screen — do step 1, then open the app from the icon.')}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('On iPhone this only works in the app from your Home Screen. Do step 1, then open the app from the icon.')}</p>
         ) : status === 'unsupported' ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">{isDemo() ? t('Not available in the demo — notifications need a real (invited) account.') : t('This browser can’t show notifications. On iPhone use Safari (iOS 16.4 or newer); on Android use Chrome.')}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{isDemo() ? t('Not available in the demo. Notifications need a real (invited) account.') : t('This browser can’t show notifications. On iPhone use Safari (iOS 16.4 or newer); on Android use Chrome.')}</p>
         ) : status === 'denied' ? (
           <p className="text-sm text-gray-500 dark:text-gray-400">
             <Rich text={t('Notifications are blocked. iPhone: **Settings → Notifications → Daily Assistant → Allow**. Android: long-press the app icon → **App info → Notifications**.')} />

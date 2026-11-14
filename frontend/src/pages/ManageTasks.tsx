@@ -103,7 +103,7 @@ export default function ManageTasks() {
       )}
 
       {tasks && tasks.length === 0 && (
-        <p className="text-center text-sm text-gray-400 py-8">{tr('No tasks yet — add your first one above.')}</p>
+        <p className="text-center text-sm text-gray-400 py-8">{tr('No tasks yet. Add your first one above.')}</p>
       )}
 
       {tasks && tasks.length > 0 && (

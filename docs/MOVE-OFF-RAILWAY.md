@@ -1,6 +1,6 @@
 # Moving the backend off Railway (₹0)
 
-**Status: DONE 9 Nov 2026.** **Before:** Railway ran an always-on Node server (every-minute reminders, Send Test, Delete account) — trial ends ~5 Dec.
+**Status: DONE 9 Nov 2026.** **Before:** Railway ran an always-on Node server (every-minute reminders, Send Test, Delete account) - trial ends ~5 Dec.
 **After:** the same code runs as **Vercel functions** in the app's own project (`frontend/api/*`), and
 **Supabase pg_cron** calls `/api/cron/tick` every minute. Both are free at this scale.
 
@@ -27,4 +27,4 @@ so nobody gets duplicates during the switch.
 7. **Railway:** delete the service (Project → Settings → Danger → Delete). Nothing else depends on it.
 
 ## Rollback
-`select cron.unschedule('daily-assistant-tick');` — and Railway keeps working until you delete it.
+`select cron.unschedule('daily-assistant-tick');` - and Railway keeps working until you delete it.

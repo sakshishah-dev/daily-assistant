@@ -120,8 +120,8 @@ export default function Reports({ embedded = false }: { embedded?: boolean }) {
           </div>
           <p className="text-sm text-gray-700 dark:text-gray-200 mt-1">{t('{n} of {total} done in the last 7 days.', { n: week.done, total: week.total })}</p>
           {week.pattern
-            ? <p className="text-xs text-saffron-600 mt-1">💡 {t('Most often missed: {pattern}.', { pattern: week.pattern })}</p>
-            : week.pct === 100 && <p className="text-xs text-brand-600 dark:text-brand-400 mt-1">{t('Nothing missed — wonderful! 🎉')}</p>}
+            ? <p className="text-xs text-saffron-600 mt-1">{t('Most often missed: {pattern}.', { pattern: week.pattern })}</p>
+            : week.pct === 100 && <p className="text-xs text-brand-600 dark:text-brand-400 mt-1">{t('Nothing missed, wonderful!')}</p>}
         </div>
       )}
 
@@ -131,7 +131,7 @@ export default function Reports({ embedded = false }: { embedded?: boolean }) {
         </span>
         <span className="flex-1 min-w-0">
           <span className="block text-sm font-semibold text-gray-900 dark:text-white">{t('Report for your doctor')}</span>
-          <span className="block text-xs text-gray-400">{t('What you took and missed — print or save as PDF')}</span>
+          <span className="block text-xs text-gray-400">{t('What you took and missed. Print or save as PDF')}</span>
         </span>
         <span className="text-gray-300">›</span>
       </Link>
@@ -145,7 +145,7 @@ export default function Reports({ embedded = false }: { embedded?: boolean }) {
         </div>
         <div className="card p-4">
           <p className="section-label mb-1">{t('Current Streak')}</p>
-          <p className="text-3xl font-bold text-amber-500">🔥 {streak}</p>
+          <p className="text-3xl font-bold text-amber-500">{streak}</p>
           <p className="text-xs text-gray-400 mt-0.5">{t('days ≥ 70%')}</p>
         </div>
       </div>
@@ -225,7 +225,7 @@ export default function Reports({ embedded = false }: { embedded?: boolean }) {
                     d.pct >= 70 ? 'text-emerald-500' : d.pct >= 40 ? 'text-amber-500' : 'text-red-400'
                   }`}
                 >
-                  {d.total > 0 ? `${d.pct}%` : '—'}
+                  {d.total > 0 ? `${d.pct}%` : '-'}
                 </span>
               </div>
             </div>

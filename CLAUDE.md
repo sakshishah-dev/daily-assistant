@@ -158,6 +158,10 @@ C:\Users\LPI73\daily-assistant\
   `timeOf()` (always "7:36 PM"); never call toLocaleString/toLocaleTimeString directly. Check layout with scratchpad lang-audit.js (all pages, hi + gu). **RULE: every new user-facing string uses t() and gets hi + gu entries** — add them to the
   dictionaries (scratchpad tools: scan for untranslated text, extract keys → report missing; target = 0 missing). `t` clashes with
   callback params named `t` → import as `tr`. Privacy text is translated but the English text prevails (stated on the page).
+- **Tone (Sakshi's rule)**: no em dashes (—) and no emojis anywhere in the app, messages, notifications, guide or docs. Use a plain
+  `.`, `:`, `,`, `-` or `;`; for icons use lucide-react line icons (`CategoryIcon`, `NOTIFICATION_SLOTS[slot].icon`). Hindi/Gujarati
+  dictionaries follow the same rule. WhatsApp invite messages (`inviteMessage`, `familyInviteMessage`) include exact iPhone + Android
+  "add to Home Screen" steps (`lib/installText.ts`).
 - **App-icon badge**: push payload `badge` (pending items whose time has come) → SW `setAppBadge`; app recomputes every minute
 - **App updates**: sw.ts calls skipWaiting + clientsClaim; main.tsx checks for updates on every open (visibilitychange)
   and reloads once when a new version takes over. Settings shows build time + commit (`__BUILD_TIME__`, `__COMMIT__`).

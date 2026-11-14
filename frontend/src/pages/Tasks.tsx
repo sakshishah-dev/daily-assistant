@@ -75,8 +75,8 @@ export default function Tasks() {
       const res = await tasksApi.submitDay([...checked]);
       localStorage.removeItem(CHECKS_KEY);
       setChecked(new Set());
-      if (res.completed === res.total) celebrate(tr('All tasks done! 🌟'));
-      else toast.success(tr('Day submitted — {done}/{total} done', { done: res.completed, total: res.total }));
+      if (res.completed === res.total) celebrate(tr('All tasks done!'));
+      else toast.success(tr('Day submitted: {done}/{total} done', { done: res.completed, total: res.total }));
       await load();
     } catch (e) {
       if (e instanceof TaskError && e.code === 'ALREADY_SUBMITTED') { await load(); return; }
@@ -161,7 +161,7 @@ export default function Tasks() {
         {header}
         <EmptyState
           title={tr('No daily tasks yet')}
-          text={tr('Add the small things you want to do every day — tick them off and submit your day.')}
+          text={tr('Add the small things you want to do every day. Tick them off and submit your day.')}
           action={<Link to="/tasks/manage" className="btn-primary">{tr('Add tasks')}</Link>}
         />
       </div>

@@ -24,11 +24,11 @@ assert.ok(runsOn({ repeat: 'once', once_date: '2026-11-05' }, d));
 const n = buildSlotNotification('after_dinner', '21:00', [
   { title: 'Iron Syrup', medicine: { dosage: '10 ml', mealRelation: 'after' } },
   { title: 'Walk' }, { title: 'A' }, { title: 'B' }, { title: 'C' }, { title: 'D' }]);
-assert.strictEqual(n.title, '🌙 After Dinner · 9:00 PM');
+assert.strictEqual(n.title, 'After Dinner · 9:00 PM');
 assert.strictEqual(n.url, '/checkin/after_dinner');
 assert.strictEqual(n.badge, 6);
-assert.strictEqual(n.body, 'Iron Syrup — 10 ml, after meal\nWalk\nA\nB\n+2 more');
-assert.strictEqual(buildSlotNotification('morning', '07:45', [{ title: 'X' }]).title, '☀️ Morning · 7:45 AM');
+assert.strictEqual(n.body, 'Iron Syrup: 10 ml, after meal\nWalk\nA\nB\n+2 more');
+assert.strictEqual(buildSlotNotification('morning', '07:45', [{ title: 'X' }]).title, 'Morning · 7:45 AM');
 // Custom-time reminders
 const customs = [
   { id: 'c1', title: 'Calcium', slots: [], custom_time: '08:00', repeat: 'daily', is_active: true, medicine: { dosage: '1 tablet' } },
@@ -39,7 +39,7 @@ const customs = [
 const cLogs = new Map([['c4__custom__2026-11-05', { status: 'completed' }]]);
 assert.deepStrictEqual(dueCustom(customs, cLogs, d).map(r => r.id), ['c1']);   // Thu 08:00
 assert.deepStrictEqual(buildCustomNotification(customs[0], '20:05'),
-  { title: '⏰ Reminder · 8:05 PM', body: 'Calcium — 1 tablet', tag: 'da-custom-c1', url: '/checkin/custom-c1', badge: 1 });
+  { title: 'Reminder · 8:05 PM', body: 'Calcium: 1 tablet', tag: 'da-custom-c1', url: '/checkin/custom-c1', badge: 1 });
 // Follow-ups + badge
 assert.strictEqual(minusMinutes('20:45', 15), '20:30');
 assert.strictEqual(minusMinutes('00:10', 15), null);
@@ -133,7 +133,7 @@ wk = [L('2026-11-09', 'after_dinner', 'skipped', 'missed'), L('2026-11-02', 'aft
   L('2026-11-10', 'morning', 'completed'), L('2026-11-11', 'morning', 'completed'), L('2026-11-12', 'morning', 'completed')];
 assert.strictEqual(weeklySummary(wk, '2026-11-15').pattern, 'Monday after-dinner doses');
 assert.strictEqual(weeklySummary([L('2026-11-14', 'morning', 'completed')], '2026-11-15'), null);   // too little data
-assert.match(buildWeeklyNotification({ done: 4, total: 4, pct: 100 }).body, /wonderful/);
+assert.match(buildWeeklyNotification({ done: 4, total: 4, pct: 100 }).body, /wonderful/i);
 // SOS medicine stock: warn when ≤ N doses left, never "days"
 const sosMed = { id: 's', title: 'Painkiller', slots: [], repeat: 'daily', is_active: true,
   medicine: { asNeeded: true, stock: { quantity: 10, unit: 'tablets', perDose: 1, refilledAt: '2026-11-01T00:00:00.000Z', lowDays: 3 } } };
@@ -170,9 +170,9 @@ console.log('scheduleLogic: all tests passed');
   const { buildSlotNotification, buildWaterNotification, buildStockNotification, buildFamilyNotification } = await import('../api/_lib/scheduleLogic.js');
   const due = [{ title: 'Iron Syrup', medicine: { dosage: '10 ml', mealRelation: 'after' } }];
   const en = buildSlotNotification('morning', '08:00', due, 1);
-  assert.equal(en.title, '☀️ Morning · 8:00 AM');
-  assert.equal(buildSlotNotification('morning', '08:00', due, 1, 'hi').title, '☀️ सुबह · 8:00 AM');
-  assert.equal(buildSlotNotification('morning', '08:00', due, 1, 'gu').body, 'Iron Syrup — 10 ml, જમ્યા પછી');   // medicine name never translated
+  assert.equal(en.title, 'Morning · 8:00 AM');
+  assert.equal(buildSlotNotification('morning', '08:00', due, 1, 'hi').title, 'सुबह · 8:00 AM');
+  assert.equal(buildSlotNotification('morning', '08:00', due, 1, 'gu').body, 'Iron Syrup: 10 ml, જમ્યા પછી');   // medicine name never translated
   assert.match(buildWaterNotification(3, 8, 'hi').body, /8 में से 3/);
   assert.match(buildStockNotification({ title: 'X' }, { out: false, remaining: 4, unit: 'tablets', daysLeft: 2 }, 'gu').body, /ગોળીઓ/);
   assert.match(buildFamilyNotification('Maa', { items: [{ title: 'BP' }], time: '08:00', key: 'morning' }, 'l1', 'hi').title, /Maa/);

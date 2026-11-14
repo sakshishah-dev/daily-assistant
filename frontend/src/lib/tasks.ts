@@ -121,7 +121,7 @@ export const tasksApi = {
 
   async create(name: string): Promise<DailyTask> {
     const trimmed = name.trim();
-    if (!trimmed || trimmed.length > 100) throw new TaskError(tr('Task name must be 1–100 characters'));
+    if (!trimmed || trimmed.length > 100) throw new TaskError(tr('Task name must be 1-100 characters'));
     if (isDemo()) {
       const d = dGet(); const t = { id: `demo-${Date.now().toString(36)}`, name: trimmed, sortOrder: d.tasks.length, isActive: true };
       dSet({ ...d, tasks: [...d.tasks, t] }); return { id: t.id, name: t.name, sortOrder: t.sortOrder };

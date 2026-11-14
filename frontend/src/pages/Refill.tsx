@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useApp } from '../context/AppContext';
 import { stockStatus, dosesPerDay } from '../utils/schedule';
@@ -56,7 +56,7 @@ export default function Refill() {
     setReminders(prev => prev.map(x => x.id !== r.id ? x : {
       ...x, medicine: { ...x.medicine!, stock: { ...stock, quantity: total, refilledAt: now } },
     }));
-    toast.success(t('Refilled — you now have {n} {unit}', { n: total, unit: t(unit) }), { id: 'refill' });
+    toast.success(t('Refilled: you now have {n} {unit}', { n: total, unit: t(unit) }), { id: 'refill' });
     navigate('/', { replace: true });
   };
 
@@ -68,7 +68,7 @@ export default function Refill() {
       </div>
 
       <div className="card p-5 text-center mb-5">
-        <p className="text-3xl mb-1" aria-hidden="true">🧴</p>
+        <Package size={34} strokeWidth={1.5} className="mx-auto mb-1 text-saffron-600" aria-hidden="true" />
         <p className="text-lg font-semibold text-gray-900 dark:text-white">{r.title}</p>
         <p className={`text-sm mt-1 ${st.out ? 'text-red-600 dark:text-red-400' : st.low ? 'text-saffron-600' : 'text-gray-500'}`}>
           {t('{n} {unit} left', { n: st.remaining, unit: t(unit) })}{st.daysLeft !== null && !st.out ? ' · ' + t(st.daysLeft === 1 ? 'about 1 day' : 'about {n} days', { n: st.daysLeft }) : ''}

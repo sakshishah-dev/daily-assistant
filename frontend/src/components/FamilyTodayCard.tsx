@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Users } from 'lucide-react';
 import { useFamilyPeople, usePersonData, personDay, displayName } from '../lib/useFamily';
 import type { FamilyPerson } from '../lib/family';
 import { t } from '../lib/i18n';
@@ -11,7 +12,7 @@ export default function FamilyTodayCard() {
   return (
     <section className="mb-5">
       <div className="flex items-center gap-2 mb-2 px-1">
-        <span className="text-base">👪</span>
+        <Users size={18} strokeWidth={1.8} className="text-brand-600 dark:text-brand-400" />
         <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{t('Family')}</h2>
         <Link to="/family" className="ml-auto text-xs font-semibold text-brand-600 dark:text-brand-400">{t('See all')}</Link>
       </div>

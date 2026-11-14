@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Droplet } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useApp } from '../context/AppContext';
 import { WATER_EVERY, DEFAULT_WATER, waterTimes } from '../lib/water';
@@ -25,7 +25,7 @@ export default function WaterSetup() {
   const save = () => {
     if (!valid) return;
     updateProfile({ water: w });
-    toast.success(isOn ? t('Water reminders updated') : t('Water reminders on 💧'), { id: 'water' });
+    toast.success(isOn ? t('Water reminders updated') : t('Water reminders on'), { id: 'water' });
     navigate('/', { replace: true });
   };
   const turnOff = () => {
@@ -42,7 +42,7 @@ export default function WaterSetup() {
       </div>
 
       <div className="card p-5 text-center mb-6">
-        <p className="text-4xl mb-1" aria-hidden="true">💧</p>
+        <Droplet size={38} strokeWidth={1.5} className="mx-auto mb-1 text-sky-500" aria-hidden="true" />
         <p className="text-lg font-semibold text-gray-900 dark:text-white">{t('Water reminders')}</p>
         <p className="text-sm text-gray-400">{t('Gentle nudges through the day')}</p>
       </div>
@@ -77,7 +77,7 @@ export default function WaterSetup() {
         <label className="label">{t('Daily goal')}</label>
         <div className="card flex items-center justify-between">
           <button type="button" aria-label={t('Fewer glasses')} onClick={() => set({ goal: Math.max(1, w.goal - 1) })}
-            className="px-5 py-3 text-2xl text-brand-600 dark:text-brand-400 disabled:opacity-30" disabled={w.goal <= 1}>–</button>
+            className="px-5 py-3 text-2xl text-brand-600 dark:text-brand-400 disabled:opacity-30" disabled={w.goal <= 1}>-</button>
           <span className="text-base font-semibold text-gray-900 dark:text-white">{t(w.goal === 1 ? '{n} glass' : '{n} glasses', { n: w.goal })}</span>
           <button type="button" aria-label={t('More glasses')} onClick={() => set({ goal: Math.min(20, w.goal + 1) })}
             className="px-5 py-3 text-2xl text-brand-600 dark:text-brand-400 disabled:opacity-30" disabled={w.goal >= 20}>+</button>
@@ -86,7 +86,7 @@ export default function WaterSetup() {
 
       {valid ? (
         <div className="rounded-2xl bg-brand-50 dark:bg-white/[0.06] px-4 py-3 text-[13px] text-brand-700 dark:text-brand-300 mb-2">
-          🔔 {t(count === 1 ? 'About 1 reminder a day, {from} – {to}.' : 'About {n} reminders a day, {from} – {to}.', { n: count, from: formatTime(w.from), to: formatTime(w.to) })}<br />
+          {t(count === 1 ? 'About 1 reminder a day, {from} - {to}.' : 'About {n} reminders a day, {from} - {to}.', { n: count, from: formatTime(w.from), to: formatTime(w.to) })}<br />
           {t('They stop once you reach your goal.')}
         </div>
       ) : (

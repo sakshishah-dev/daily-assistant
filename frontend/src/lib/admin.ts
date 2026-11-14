@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { t } from './i18n';
+import { installStepsText } from './installText';
 
 export interface Invite { email: string; note: string | null; invited_at: string; joined: boolean; joined_at: string | null }
 
@@ -26,14 +27,14 @@ function friendly(msg: string) {
   if (/NOT_ADMIN/.test(msg)) return t('Only the app owner can do this');
   if (/CANNOT_REMOVE_ADMIN/.test(msg)) return t('You can’t remove the owner');
   if (/admin_|function/.test(msg)) return t('Invites need a one-time database update first');
-  return t('Something went wrong — check your connection');
+  return t('Something went wrong. Check your connection');
 }
 
 export const APP_URL = 'https://daily-assistant-eta.vercel.app';
 
-/** Message the owner sends to someone they invited (WhatsApp / share sheet). */
+/** Message the owner sends to someone they invited (WhatsApp / share sheet), with the exact install steps. */
 export const inviteMessage = (email: string) =>
-  `${t("I've added you to Daily Assistant — a free app for medicine & habit reminders. 💊")}\n\n` +
-  `1. ${t('Open {url} on your phone', { url: `${APP_URL}/about` })}\n` +
-  `2. ${t('Follow the steps there to add it to your Home Screen')}\n` +
-  `3. ${t("Log in with {email} — you'll get a 6-digit code by email", { email })}`;
+  `${t("I've added you to Daily Assistant. It's a free app for medicine and habit reminders.")}\n\n` +
+  `${t('Step 1: open this link on your phone:')}\n${APP_URL}/about\n\n` +
+  `${t('Step 2: add it to your Home Screen.')}\n${installStepsText()}\n\n` +
+  `${t('Step 3: log in with {email}. You will get a 6-digit code by email (check Spam if it is not there).', { email })}`;

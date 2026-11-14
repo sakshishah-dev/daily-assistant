@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Share2, Copy } from 'lucide-react';
+import { ArrowLeft, Share2, Copy, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useApp } from '../context/AppContext';
 import { family, familyInviteMessage, joinUrl } from '../lib/family';
@@ -35,7 +35,7 @@ export default function FamilyAdd() {
     await copy();
   };
   const copy = async () => {
-    try { await navigator.clipboard.writeText(message); toast.success(t('Copied — paste it in WhatsApp'), { id: 'fam' }); } catch { /* ignore */ }
+    try { await navigator.clipboard.writeText(message); toast.success(t('Copied: paste it in WhatsApp'), { id: 'fam' }); } catch { /* ignore */ }
   };
 
   if (code && role) {
@@ -46,7 +46,7 @@ export default function FamilyAdd() {
           <h1 className="page-title">{t('Send the invite')}</h1>
         </div>
         <div className="card p-5 text-center mb-4">
-          <p className="text-3xl mb-2">👪</p>
+          <Users size={34} strokeWidth={1.5} className="mx-auto mb-2 text-brand-600" />
           <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
             {role === 'owner' ? t('Send this to the person who should follow your medicines.') : t('Send this to the person whose medicines you want to follow. They have to accept.')}
           </p>
@@ -73,11 +73,11 @@ export default function FamilyAdd() {
 
       <p className="label">{t('What would you like to do?')}</p>
       <div className="space-y-2 mb-5">
-        {([['carer', '👀', 'Follow someone’s medicines', 'e.g. see if Mummy took her tablets, and get an alert if she didn’t'],
-           ['owner', '🤝', 'Let someone follow my medicines', 'e.g. so your son or daughter knows you’re okay']] as const).map(([k, emoji, title, sub]) => (
+        {([['carer', '', 'Follow someone’s medicines', 'e.g. see if Mummy took her tablets, and get an alert if she didn’t'],
+           ['owner', '', 'Let someone follow my medicines', 'e.g. so your son or daughter knows you’re okay']] as const).map(([k, emoji, title, sub]) => (
           <button key={k} type="button" onClick={() => setRole(k)} aria-pressed={role === k}
             className={`w-full text-left p-4 rounded-2xl border-2 transition-all ${role === k ? 'border-brand-500 bg-brand-50 dark:bg-white/[0.06]' : 'border-gray-200 dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E]'}`}>
-            <span className="block text-[15px] font-semibold text-gray-900 dark:text-white">{emoji} {t(title)}</span>
+            <span className="block text-[15px] font-semibold text-gray-900 dark:text-white">{t(title)}</span>
             <span className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">{t(sub)}</span>
           </button>
         ))}
@@ -101,7 +101,7 @@ export default function FamilyAdd() {
               className="w-full flex items-center justify-between p-3 mb-5 rounded-xl border border-gray-200 dark:border-[#3A3A3C] bg-white dark:bg-[#1C1C1E]">
               <span className="text-left">
                 <span className="block text-sm font-medium text-gray-800 dark:text-gray-100">{t('Also let them manage my medicines')}</span>
-                <span className="block text-xs text-gray-400">{canManage ? t('They can add/change medicines and tick doses for you') : t('Off — they can only see')}</span>
+                <span className="block text-xs text-gray-400">{canManage ? t('They can add/change medicines and tick doses for you') : t('Off: they can only see')}</span>
               </span>
               <span className={`w-11 h-6 rounded-full p-0.5 transition-colors flex-shrink-0 ${canManage ? 'bg-brand-600' : 'bg-gray-300 dark:bg-[#3A3A3C]'}`}>
                 <span className={`block w-5 h-5 rounded-full bg-white shadow transition-transform ${canManage ? 'translate-x-5' : ''}`} />
@@ -109,7 +109,7 @@ export default function FamilyAdd() {
             </button>
           )}
           <button onClick={create} disabled={busy} className="btn-primary w-full disabled:opacity-50">{busy ? t('Creating…') : t('Create invite link')}</button>
-          <p className="text-xs text-gray-400 text-center mt-3">{t('They see only your medicines — never habits, water or daily tasks.')}</p>
+          <p className="text-xs text-gray-400 text-center mt-3">{t('They see only your medicines. Never habits, water or daily tasks.')}</p>
         </>
       )}
     </div>

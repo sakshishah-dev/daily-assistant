@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { stockStatus, courseStatus, isAsNeeded } from '../utils/schedule';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Power, PowerOff } from 'lucide-react';
+import CategoryIcon from '../components/ui/CategoryIcon';
 import { useApp } from '../context/AppContext';
 import { SkeletonList } from '../components/ui/Skeleton';
 import EmptyState from '../components/ui/EmptyState';
@@ -82,7 +83,7 @@ export default function Reminders() {
       ) : filtered.length === 0 ? (
         <EmptyState
           title={reminders.length ? t('Nothing in this category') : t('No reminders yet')}
-          text={reminders.length ? t('Try another filter, or add a new reminder.') : t('Add your medicines and daily habits — we will remind you at the right time.')}
+          text={reminders.length ? t('Try another filter, or add a new reminder.') : t('Add your medicines and daily habits. We will remind you at the right time.')}
           action={<button className="btn-primary" onClick={() => navigate('/reminders/add')}>{t('Add a reminder')}</button>}
         />
       ) : (
@@ -96,7 +97,7 @@ export default function Reminders() {
                     className="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center text-lg"
                     style={{ backgroundColor: cat.bg, color: cat.color }}
                   >
-                    {r.category === 'medicine' ? '💊' : r.category === 'habit' ? '✨' : r.category === 'routine' ? '🔄' : '✅'}
+                    <CategoryIcon category={r.category} size={20} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 dark:text-white">{r.title}</p>
@@ -112,7 +113,7 @@ export default function Reminders() {
                           {r.slots.map(s => NOTIFICATION_SLOTS[s].label).join(' & ')}
                         </span>
                       )}
-                      <span className="text-xs text-gray-400 dark:text-gray-500">{isAsNeeded(r) ? '🆘 ' + t('Only when needed') : repeatLabel(r)}</span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">{isAsNeeded(r) ? t('Only when needed') : repeatLabel(r)}</span>
                       {r.medicine?.dosage && (
                         <span className="text-xs text-gray-400">{r.medicine.dosage}</span>
                       )}
@@ -160,7 +161,7 @@ function ReminderExtras({ r, logs }: { r: Reminder; logs: TaskInstance[] }) {
           course.state === 'finished' ? 'bg-gray-100 text-gray-500 dark:bg-[#2C2C2E] dark:text-gray-400'
           : 'bg-brand-50 text-brand-700 dark:bg-white/[0.06] dark:text-brand-300'}`}>
           {course.state === 'upcoming' ? t('Starts {date}', { date: fmt(course.startDate) })
-            : course.state === 'finished' ? t('✓ Course finished')
+            : course.state === 'finished' ? t('Course finished')
             : course.total ? t('Day {n} of {total}', { n: course.day, total: course.total }) : t('Day {n}', { n: course.day })}
         </span>
       )}
@@ -169,7 +170,7 @@ function ReminderExtras({ r, logs }: { r: Reminder; logs: TaskInstance[] }) {
           stock.out ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400'
           : stock.low ? 'bg-saffron-500/15 text-saffron-600'
           : 'bg-gray-100 text-gray-600 dark:bg-[#2C2C2E] dark:text-gray-300'}`}>
-          🧴 {stock.out ? t('Out of stock') : `${stock.remaining} ${t(stock.unit)}${stock.daysLeft !== null ? ' · ' + t('~{n}d', { n: stock.daysLeft }) : ''}`}
+          {stock.out ? t('Out of stock') : `${stock.remaining} ${t(stock.unit)}${stock.daysLeft !== null ? ' · ' + t('~{n}d', { n: stock.daysLeft }) : ''}`}
         </span>
       )}
     </div>

@@ -91,7 +91,7 @@ async function fetchAll<T>(build: (from: number, to: number) => PromiseLike<{ da
 async function fetchServer(uid: string): Promise<Snapshot> {
   if (isDemo()) {          // sample data kept in this browser only
     const d = demoGet<DemoSnapshot | null>('snapshot', null);
-    if (!d) throw new Error(t('Demo data missing — tap Exit demo and start it again'));
+    if (!d) throw new Error(t('Demo data missing. Tap Exit demo and start it again'));
     return { ...d, profile: { ...emptyProfile(uid), ...d.profile } } as Snapshot;
   }
   const since = new Date(Date.now() - LOG_HISTORY_DAYS * 864e5).toISOString().slice(0, 10);

@@ -8,10 +8,10 @@ export const isInstalled = () =>
 
 const STEPS = {
   iphone: [
-    'Open the link in **Safari** (not Chrome or the WhatsApp browser — tap **⋯** → **Open in Safari** if needed).',
+    'Open the link in **Safari** (not Chrome or the WhatsApp browser; tap **⋯** → **Open in Safari** if needed).',
     'Tap the **Share** button (square with an arrow ↑) at the bottom.',
     'Scroll down and tap **Add to Home Screen**, then **Add**.',
-    'Open **Daily Assistant** from your Home Screen icon — always use the icon from now on.',
+    'Open **Daily Assistant** from your Home Screen icon. Always use the icon from now on.',
   ],
   android: [
     'Open the link in **Chrome**.',
