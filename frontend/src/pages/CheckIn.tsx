@@ -11,7 +11,7 @@ import { Skeleton, SkeletonList } from '../components/ui/Skeleton';
 import { celebrate } from '../components/ui/Celebration';
 import type { NotificationSlot } from '../types';
 import { snooze, getSnooze, cancelSnooze } from '../lib/snooze';
-import { t as tr, locale } from '../lib/i18n';
+import { t as tr, locale, timeOf} from '../lib/i18n';
 
 const CATEGORY_ORDER = { medicine: 0, habit: 1, routine: 2, task: 3 } as const;
 
@@ -57,7 +57,7 @@ export default function CheckIn() {
     try {
       const due = await snooze(key, minutes);
       setSnoozedUntil(due);
-      toast.success(tr("Okay — we'll remind you at {time}", { time: due.toLocaleTimeString(locale(), { hour: 'numeric', minute: '2-digit' }) }), { id: 'checkin' });
+      toast.success(tr("Okay — we'll remind you at {time}", { time: timeOf(due) }), { id: 'checkin' });
       navigate('/', { replace: true });
     } catch {
       toast.error(tr("Couldn't snooze — check your connection"), { id: 'checkin' });
@@ -150,7 +150,7 @@ export default function CheckIn() {
           <div className="text-xs text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1.5">
             <AlarmClock size={14} />
             {!snoozeKnown ? <Skeleton className="h-3 w-32" /> : snoozedUntil
-              ? tr('Snoozed until {time} — or remind me in:', { time: snoozedUntil.toLocaleTimeString(locale(), { hour: 'numeric', minute: '2-digit' }) })
+              ? tr('Snoozed until {time} — or remind me in:', { time: timeOf(snoozedUntil) })
               : tr('Not now? Remind me in:')}
           </div>
           <div className="grid grid-cols-3 gap-2">

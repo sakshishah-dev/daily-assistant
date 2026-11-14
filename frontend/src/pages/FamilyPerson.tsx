@@ -10,7 +10,7 @@ import { doseMeta } from '../utils/dose';
 import { confirmDialog } from '../components/ui/ConfirmDialog';
 import { Skeleton, SkeletonList } from '../components/ui/Skeleton';
 import type { TaskInstance } from '../types';
-import { t as tr, locale } from '../lib/i18n';
+import { t as tr, locale, shortMonth, timeOf} from '../lib/i18n';
 
 const ALERTS = [{ v: 0, l: tr('Off') }, { v: 30, l: tr('30 min') }, { v: 60, l: tr('1 hour') }, { v: 120, l: tr('2 hours') }];
 const shift = (d: string, n: number) => { const x = new Date(d + 'T00:00:00Z'); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10); };
@@ -81,7 +81,7 @@ export default function FamilyPerson() {
         </div>
       </div>
 
-      {d.paused && <div className="rounded-2xl px-4 py-3 mb-4 bg-saffron-500/10 border border-saffron-400/40 text-sm text-saffron-700">🌴 {p.paused_until ? tr('{name} is on holiday — reminders paused until {date}.', { name, date: new Date(p.paused_until + 'T00:00:00').toLocaleDateString(locale(), { day: 'numeric', month: 'short' }) }) : tr('{name} is on holiday — reminders paused.', { name })}</div>}
+      {d.paused && <div className="rounded-2xl px-4 py-3 mb-4 bg-saffron-500/10 border border-saffron-400/40 text-sm text-saffron-700">🌴 {p.paused_until ? tr('{name} is on holiday — reminders paused until {date}.', { name, date: new Date(p.paused_until + 'T00:00:00').toLocaleDateString(locale(), { day: 'numeric', month: shortMonth() }) }) : tr('{name} is on holiday — reminders paused.', { name })}</div>}
 
       <p className="section-label mb-2 px-1">{tr('Today')} · {tr('{n} of {total} taken', { n: d.taken, total: d.today.length })}</p>
       {d.today.length === 0 ? <p className="card p-4 text-sm text-gray-400 mb-4">{tr('No medicines scheduled today.')}</p> : (
@@ -93,13 +93,13 @@ export default function FamilyPerson() {
               <div key={t.id} className="flex items-center gap-3 px-4 py-3">
                 <div className="flex-1 min-w-0">
                   <p className={`text-[15px] font-medium truncate ${done ? 'text-gray-400 line-through' : 'text-gray-900 dark:text-white'}`}>{t.title}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     {t.slot ? NOTIFICATION_SLOTS[t.slot].label : tr('At')} {formatTime(t.scheduledTime)}{doseMeta(r) ? ` · ${doseMeta(r)}` : ''}
                   </p>
                 </div>
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${done ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
                   : missed ? 'bg-red-50 text-red-500 dark:bg-red-500/10' : late ? 'bg-saffron-500/15 text-saffron-600' : 'bg-gray-100 text-gray-500 dark:bg-[#2C2C2E]'}`}>
-                  {done ? `${tr('Taken')}${t.completedAt ? ' ' + new Date(t.completedAt).toLocaleTimeString(locale(), { timeZone: 'Asia/Kolkata', hour: 'numeric', minute: '2-digit' }) : ''}` : missed ? tr('Missed') : late ? tr('Not yet') : tr('Later')}
+                  {done ? `${tr('Taken')}${t.completedAt ? ' ' + timeOf(new Date(t.completedAt), 'Asia/Kolkata') : ''}` : missed ? tr('Missed') : late ? tr('Not yet') : tr('Later')}
                 </span>
                 {p.can_manage && (
                   <button onClick={() => mark(t, !done)} aria-label={done ? tr('Undo {title} for {name}', { title: t.title, name }) : tr('Mark {title} taken for {name}', { title: t.title, name })}
@@ -147,7 +147,7 @@ export default function FamilyPerson() {
           <div key={r.id} className={`flex items-center gap-3 px-4 py-3 ${r.isActive ? '' : 'opacity-50'}`}>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{r.title}</p>
-              <p className="text-xs text-gray-400 truncate">{[doseMeta(r), r.medicine?.asNeeded ? tr('Only when needed') : r.slots.map(s => NOTIFICATION_SLOTS[s].label).join(' & ') || (r.customTime ? formatTime(r.customTime) : ''), r.isActive ? '' : tr('Paused')].filter(Boolean).join(' · ')}</p>
+              <p className="text-xs text-gray-400">{[doseMeta(r), r.medicine?.asNeeded ? tr('Only when needed') : r.slots.map(s => NOTIFICATION_SLOTS[s].label).join(' & ') || (r.customTime ? formatTime(r.customTime) : ''), r.isActive ? '' : tr('Paused')].filter(Boolean).join(' · ')}</p>
             </div>
             {p.can_manage && <Link to={`/family/${p.link_id}/edit/${r.id}`} aria-label={tr('Edit {title}', { title: r.title })} className="btn-icon w-8 h-8"><Pencil size={14} /></Link>}
           </div>

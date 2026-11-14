@@ -153,7 +153,9 @@ C:\Users\LPI73\daily-assistant\
   Settings (reloads the app); stored in localStorage `da_lang` AND `profiles.language` (migration 2026-11-15-language.sql) so the
   server writes notifications in it (`api/_lib/i18n.js` + `lang` param on every builder in scheduleLogic; family alerts use the
   FOLLOWER's language). Medicine names / user text are never translated. Doctor report has its own language (`tIn`, `da_report_lang`).
-  Gujarati font: Noto Sans Gujarati. **RULE: every new user-facing string uses t() and gets hi + gu entries** — add them to the
+  Gujarati font: Noto Sans Gujarati (own @font-face 'Gujarati', size-adjust 116% so it matches Poppins). Hindi/Gujarati need extra line-height
+  (CSS in index.css). Dates in sentences use `month: shortMonth()` (full month name in hi/gu — their abbreviations look odd) and times use
+  `timeOf()` (always "7:36 PM"); never call toLocaleString/toLocaleTimeString directly. Check layout with scratchpad lang-audit.js (all pages, hi + gu). **RULE: every new user-facing string uses t() and gets hi + gu entries** — add them to the
   dictionaries (scratchpad tools: scan for untranslated text, extract keys → report missing; target = 0 missing). `t` clashes with
   callback params named `t` → import as `tr`. Privacy text is translated but the English text prevails (stated on the page).
 - **App-icon badge**: push payload `badge` (pending items whose time has come) → SW `setAppBadge`; app recomputes every minute

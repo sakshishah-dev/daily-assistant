@@ -9,7 +9,7 @@ import { confirmDialog } from '../components/ui/ConfirmDialog';
 import { NOTIFICATION_SLOTS, CATEGORIES } from '../utils/constants';
 import type { Category, Reminder, TaskInstance } from '../types';
 import toast from 'react-hot-toast';
-import { t, locale } from '../lib/i18n';
+import { t, locale, shortMonth} from '../lib/i18n';
 
 const FILTERS: { key: 'all' | Category; label: string }[] = [
   { key: 'all',      label: t('All')      },
@@ -152,7 +152,7 @@ function ReminderExtras({ r, logs }: { r: Reminder; logs: TaskInstance[] }) {
   const course = courseStatus(r);
   const stock = stockStatus(r, logs);
   if (!course && !stock) return null;
-  const fmt = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString(locale(), { day: 'numeric', month: 'short' });
+  const fmt = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString(locale(), { day: 'numeric', month: shortMonth() });
   return (
     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
       {course && (

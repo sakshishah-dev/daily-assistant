@@ -1,6 +1,6 @@
 import { TIMEZONE } from './constants';
 import type { TaskInstance, DashboardStats } from '../types';
-import { t, locale } from '../lib/i18n';
+import { t, locale, shortMonth} from '../lib/i18n';
 
 type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
 
@@ -51,7 +51,7 @@ export function formatDate(dateStr: string): string {
 
 export function formatDateShort(dateStr: string): string {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString(locale(), {
-    weekday: 'short', month: 'short', day: 'numeric',
+    weekday: 'short', month: shortMonth(), day: 'numeric',
   });
 }
 

@@ -8,7 +8,7 @@ import { formatDate } from '../utils/dateHelpers';
 import EmptyState from '../components/ui/EmptyState';
 import { confirmDialog } from '../components/ui/ConfirmDialog';
 import { celebrate } from '../components/ui/Celebration';
-import { t as tr, locale } from '../lib/i18n';
+import { t as tr, locale, timeOf} from '../lib/i18n';
 
 /** In-progress ticks live on the device until Submit Day. Keyed by IST date so they reset each morning. */
 const CHECKS_KEY = 'da_task_checks_v1';
@@ -135,7 +135,7 @@ export default function Tasks() {
           <div className="progress-track mt-4"><div className="progress-fill" style={{ width: `${pct}%` }} /></div>
           {data.submittedAt && (
             <p className="text-[11px] text-gray-400 mt-3">
-              {tr('Submitted at')} {new Date(data.submittedAt).toLocaleTimeString(locale(), { timeZone: 'Asia/Kolkata', hour: 'numeric', minute: '2-digit' })}
+              {tr('Submitted at')} {timeOf(new Date(data.submittedAt), 'Asia/Kolkata')}
             </p>
           )}
         </div>

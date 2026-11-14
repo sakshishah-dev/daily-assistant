@@ -7,9 +7,9 @@ import { admin, inviteMessage, type Invite } from '../lib/admin';
 import { confirmDialog } from '../components/ui/ConfirmDialog';
 import EmptyState from '../components/ui/EmptyState';
 import { SkeletonList } from '../components/ui/Skeleton';
-import { t, locale } from '../lib/i18n';
+import { t, locale, shortMonth} from '../lib/i18n';
 
-const fmt = (iso: string) => new Date(iso).toLocaleDateString(locale(), { day: 'numeric', month: 'short' });
+const fmt = (iso: string) => new Date(iso).toLocaleDateString(locale(), { day: 'numeric', month: shortMonth() });
 
 /** Owner only: invite people by email from the phone (no SQL), share the invite, see who joined, remove invites. */
 export default function Invites() {
