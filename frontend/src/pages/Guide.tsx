@@ -25,7 +25,7 @@ export default function Guide() {
   }, [q]);
 
   const share = async () => {
-    try { if (navigator.share) { await navigator.share({ title: t('Daily Assistant — what it can do'), url: URL }); return; } } catch { return; }
+    try { if (navigator.share) { await navigator.share({ title: t('Daily Assistant: what it can do'), url: URL }); return; } } catch { return; }
     try { await navigator.clipboard.writeText(URL); toast.success(t('Link copied')); } catch { /* ignore */ }
   };
 
@@ -37,7 +37,7 @@ export default function Guide() {
         <button onClick={share} className="btn-icon" aria-label={t('Share this page')}><Share2 size={18} /></button>
       </div>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        {t("Daily Assistant reminds you to take medicines, drink water and keep your daily habits — and shows how you're doing.")}{' '}
+        {t("Daily Assistant reminds you to take medicines, drink water and keep your daily habits. And shows how you're doing.")}{' '}
         {t('Here are all {n} things it can do.', { n: total })}
       </p>
 
@@ -47,14 +47,14 @@ export default function Guide() {
       </div>
       <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mb-5">
         <input type="checkbox" checked={testing} onChange={e => setTesting(e.target.checked)} className="w-4 h-4 accent-brand-600" />
-        {t('I\'m testing — show what each should do')}
+        {t('I\'m testing: show what each should do')}
       </label>
 
       {sections.length === 0 && <p className="text-sm text-gray-400 text-center py-8">{t('Nothing matches “{q}”.', { q })}</p>}
 
       {sections.map(s => (
         <section key={s.title} className="mb-5">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 px-1">{s.emoji} {t(s.title)}</h2>
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 px-1">{t(s.title)}</h2>
           <div className="card divide-y divide-gray-100 dark:divide-[#2C2C2E] overflow-hidden">
             {s.items.map(f => (
               <div key={f.title} className="px-4 py-3">
@@ -63,8 +63,8 @@ export default function Guide() {
                   {isNew(f) && <span className="ml-2 align-middle text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-saffron-500/15 text-saffron-600">{t('New')}</span>}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-300 mt-0.5">{t(f.what)}</p>
-                {f.where && <p className="text-xs text-brand-700 dark:text-brand-400 mt-1">📍 {t(f.where)}</p>}
-                {testing && f.check && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">✅ {t('Should:')} {t(f.check)}</p>}
+                {f.where && <p className="text-xs text-brand-700 dark:text-brand-400 mt-1">{t('Where:')} {t(f.where)}</p>}
+                {testing && f.check && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t('Should:')} {t(f.check)}</p>}
               </div>
             ))}
           </div>
@@ -72,7 +72,7 @@ export default function Guide() {
       ))}
 
       <p className="text-xs text-gray-400 text-center mt-6">
-        {!isDemo() && <button type="button" onClick={startDemo} className="btn-secondary w-full mb-3">{t('👀 Try the demo — no sign-up')}</button>}
+        {!isDemo() && <button type="button" onClick={startDemo} className="btn-secondary w-full mb-3">{t('Try the demo. No sign-up')}</button>}
         {t('Free · No ads · Invite-only')} · <Link to="/about" className="underline">{t('How to install')}</Link> · <Link to="/privacy" className="underline">{t('Privacy')}</Link>
       </p>
     </div>

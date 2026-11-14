@@ -53,8 +53,8 @@ export default function Invites() {
     try {
       if (navigator.share) { await navigator.share({ title: 'Daily Assistant', text }); return; }
     } catch { return; /* closed the share sheet */ }
-    try { await navigator.clipboard.writeText(text); toast.success(t('Message copied — paste it in WhatsApp'), { id: 'invite' }); }
-    catch { toast.error(t('Could not copy — use the WhatsApp button'), { id: 'invite' }); }
+    try { await navigator.clipboard.writeText(text); toast.success(t('Message copied: paste it in WhatsApp'), { id: 'invite' }); }
+    catch { toast.error(t('Could not copy. Use the WhatsApp button'), { id: 'invite' }); }
   };
   const whatsapp = (to: string) => window.open(`https://wa.me/?text=${encodeURIComponent(inviteMessage(to))}`, '_blank');
 
@@ -62,7 +62,7 @@ export default function Invites() {
     const ok = await confirmDialog({
       title: t('Remove {email}?', { email: i.email }),
       message: i.joined
-        ? t('They have already joined — their account keeps working. Removing only stops this email from signing up again if they delete their account.')
+        ? t('They have already joined. Their account keeps working. Removing only stops this email from signing up again if they delete their account.')
         : t('They will not be able to sign up with this email.'),
       confirmText: t('Remove invite'), tone: 'danger',
     });
@@ -94,7 +94,7 @@ export default function Invites() {
 
       {justInvited && (
         <div className="rounded-2xl p-4 mb-4 bg-brand-50 dark:bg-white/[0.06] border border-brand-200/60 dark:border-white/10">
-          <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">✓ {t('{email} is invited', { email: justInvited })}</p>
+          <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{t('{email} is invited', { email: justInvited })}</p>
           <p className="text-xs text-gray-600 dark:text-gray-300 mb-3">{t('Now send them the link and steps:')}</p>
           <div className="grid grid-cols-2 gap-2">
             <button onClick={() => whatsapp(justInvited)} className="py-2.5 rounded-xl bg-[#25D366] text-white text-sm font-semibold">{t('WhatsApp')}</button>

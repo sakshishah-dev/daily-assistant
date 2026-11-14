@@ -25,14 +25,14 @@ export default function HolidayCard() {
   const pause = () => {
     if (!valid) return;
     updateProfile({ paused_until: until });
-    toast.success(t('Reminders paused until {date} 🌴', { date: pretty(until) }), { id: 'holiday' });
+    toast.success(t('Reminders paused until {date}', { date: pretty(until) }), { id: 'holiday' });
   };
   const resume = () => { updateProfile({ paused_until: null }); toast.success(t('Reminders are back on'), { id: 'holiday' }); };
 
   return (
     <div className="card p-4 mb-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-gray-900 dark:text-white">🌴 {t('Holiday mode')}</p>
+        <p className="text-sm font-semibold text-gray-900 dark:text-white">{t('Holiday mode')}</p>
         <span className={`text-xs font-semibold ${paused ? 'text-saffron-600' : 'text-gray-400'}`}>{paused ? t('On') : t('Off')}</span>
       </div>
       {paused ? (

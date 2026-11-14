@@ -47,7 +47,7 @@ export default function CheckIn() {
   };
 
   const label = slotDef ? slotDef.label : tr('Reminder');
-  const emoji = slotDef ? slotDef.emoji : '⏰';
+  const SlotIcon = slotDef ? slotDef.icon : AlarmClock;
   const time = slot ? settings.notificationSlotTimes[slot] : items[0]?.scheduledTime;
   const alreadyDone = items.length > 0 && items.every(t => t.status !== 'pending');
   const dateLabel = new Date(getTodayIST() + 'T00:00:00').toLocaleDateString(locale(), { weekday: 'long', day: 'numeric', month: 'long' });
@@ -57,10 +57,10 @@ export default function CheckIn() {
     try {
       const due = await snooze(key, minutes);
       setSnoozedUntil(due);
-      toast.success(tr("Okay — we'll remind you at {time}", { time: timeOf(due) }), { id: 'checkin' });
+      toast.success(tr("Okay, we'll remind you at {time}", { time: timeOf(due) }), { id: 'checkin' });
       navigate('/', { replace: true });
     } catch {
-      toast.error(tr("Couldn't snooze — check your connection"), { id: 'checkin' });
+      toast.error(tr("Couldn't snooze: check your connection"), { id: 'checkin' });
     } finally { setSnoozing(false); }
   };
 
@@ -69,7 +69,7 @@ export default function CheckIn() {
     const missed = items.filter(t => !ticks.has(t.id)).map(t => t.id);
     submitCheckIn(done, missed);
     if (snoozedUntil) { cancelSnooze(key); setSnoozedUntil(null); }   // checked in → no snoozed reminder
-    if (!missed.length) celebrate(tr('{slot} done! ✨', { slot: label }));
+    if (!missed.length) celebrate(tr('{slot} done!', { slot: label }));
     else toast.success(tr('{slot} saved · {n} missed', { slot: label, n: missed.length }), { id: 'checkin' });
     navigate('/', { replace: true });
   };
@@ -103,7 +103,7 @@ export default function CheckIn() {
           <ArrowLeft size={18} />
         </button>
         <p className="text-xs text-white/70">{dateLabel}{time ? ` · ${formatTime(time)}` : ''}</p>
-        <h1 className="text-[22px] font-bold text-white">{emoji} {tr('{slot} check-in', { slot: label })}</h1>
+        <h1 className="text-[22px] font-bold text-white"><SlotIcon size={22} strokeWidth={1.8} className="inline -mt-1 mr-2" />{tr('{slot} check-in', { slot: label })}</h1>
       </div>
 
       <div className="card -mt-8 relative shadow-md overflow-hidden mb-3">
@@ -140,7 +140,7 @@ export default function CheckIn() {
 
       {alreadyDone && (
         <p className="text-xs text-center text-gray-500 dark:text-gray-400 mb-3">
-          {tr('Already checked in ✓ — you can change it and submit again.')}
+          {tr('Already checked in. You can change it and submit again.')}
         </p>
       )}
 
@@ -150,7 +150,7 @@ export default function CheckIn() {
           <div className="text-xs text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1.5">
             <AlarmClock size={14} />
             {!snoozeKnown ? <Skeleton className="h-3 w-32" /> : snoozedUntil
-              ? tr('Snoozed until {time} — or remind me in:', { time: timeOf(snoozedUntil) })
+              ? tr('Snoozed until {time}. Or remind me in:', { time: timeOf(snoozedUntil) })
               : tr('Not now? Remind me in:')}
           </div>
           <div className="grid grid-cols-3 gap-2">
@@ -170,7 +170,7 @@ export default function CheckIn() {
           <Check size={18} strokeWidth={3} /> {tr('Submit {slot}', { slot: label })}
         </button>
         <p className="text-[11px] text-center text-gray-400 mt-2">
-          {ticks.size === items.length ? tr('All done — nice!') : tr('{n} unticked will be saved as missed', { n: items.length - ticks.size })}
+          {ticks.size === items.length ? tr('All done, nice!') : tr('{n} unticked will be saved as missed', { n: items.length - ticks.size })}
         </p>
       </div>
     </div>

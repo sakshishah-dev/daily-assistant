@@ -60,7 +60,7 @@ export default function Report() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entries, byId, today, rl]);
   const totals = rows.reduce((s, r) => ({ taken: s.taken + r.taken, missed: s.missed + r.missed }), { taken: 0, missed: 0 });
-  const pct = (taken: number, missed: number) => taken + missed ? `${Math.round((taken / (taken + missed)) * 100)}%` : '—';
+  const pct = (taken: number, missed: number) => taken + missed ? `${Math.round((taken / (taken + missed)) * 100)}%` : '-';
 
   const byDay = useMemo(() => {
     const m = new Map<string, TaskInstance[]>();
@@ -112,7 +112,7 @@ export default function Report() {
         <header className="border-b border-gray-200 pb-3 mb-3">
           <h2 className="text-lg font-bold">{habits ? R('Medication record & habits') : R('Medication record')}</h2>
           <p>{profile.display_name || user?.email}</p>
-          <p className="text-gray-500">{long(from)} – {long(today)} · {R('made')} {`${new Date().toLocaleDateString(loc, { timeZone: 'Asia/Kolkata', day: 'numeric', month: monthFor(rl) })}, ${timeOf(new Date(), 'Asia/Kolkata')}`}</p>
+          <p className="text-gray-500">{long(from)} to {long(today)} · {R('made')} {`${new Date().toLocaleDateString(loc, { timeZone: 'Asia/Kolkata', day: 'numeric', month: monthFor(rl) })}, ${timeOf(new Date(), 'Asia/Kolkata')}`}</p>
         </header>
 
         {!fresh && rows.length === 0 && sos.length === 0 ? (
@@ -163,7 +163,7 @@ export default function Report() {
                 <h3 className="font-semibold mb-1.5">{R('Taken only when needed (SOS)')}</h3>
                 <ul className="space-y-0.5">
                   {sos.map(t => (
-                    <li key={t.id}>{dayLabel(t.date)}, {clock(t.completedAt)} — {t.title}{byId.get(t.reminderId)?.medicine?.dosage ? ` (${byId.get(t.reminderId)!.medicine!.dosage})` : ''}</li>
+                    <li key={t.id}>{dayLabel(t.date)}, {clock(t.completedAt)}: {t.title}{byId.get(t.reminderId)?.medicine?.dosage ? ` (${byId.get(t.reminderId)!.medicine!.dosage})` : ''}</li>
                   ))}
                 </ul>
               </section>
@@ -191,7 +191,7 @@ export default function Report() {
         )}
 
         <footer className="border-t border-gray-200 mt-4 pt-2 text-[11px] text-gray-500">
-          {R('Made with Daily Assistant from reminders the user entered and ticked themselves. It shows what was marked in the app — not a medical record, diagnosis or advice.')}
+          {R('Made with Daily Assistant from reminders the user entered and ticked themselves. It shows what was marked in the app. Not a medical record, diagnosis or advice.')}
         </footer>
       </article>
     </div>

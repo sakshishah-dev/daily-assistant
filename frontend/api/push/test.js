@@ -9,15 +9,15 @@ export default async function handler(req, res) {
   try {
     const user = await requireUser(req, res);
     if (!user) return;
-    if (limited(`test:${user.id}`, 5)) return json(res, 429, { error: 'Too many tests — please wait a minute' });
+    if (limited(`test:${user.id}`, 5)) return json(res, 429, { error: 'Too many tests. Please wait a minute' });
     const { data: prof } = await admin().from('profiles').select('*').eq('id', user.id).maybeSingle();
     const L = normLang(prof?.language);
     const sent = await sendToUser(user.id, {
-      title: tr(L, '🔔 Daily Assistant Test'), body: tr(L, 'Your push notifications are working perfectly!'), tag: 'test', url: '/',
+      title: tr(L, 'Daily Assistant Test'), body: tr(L, 'Your push notifications are working perfectly!'), tag: 'test', url: '/',
     });
     if (sent > 0) return json(res, 200, { ok: true, sent });
     const failures = sendToUser.lastFailures || [];
-    if (!failures.length) return json(res, 404, { error: 'This device is not registered yet — tap Disable, then Enable again.' });
+    if (!failures.length) return json(res, 404, { error: 'This device is not registered yet. Tap Disable, then Enable again.' });
     const f = failures[0];
     console.error('[push/test] all sends failed:', JSON.stringify(failures));
     const why = f.status === 403 ? 'the push service rejected our signing key (VAPID)'

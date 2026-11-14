@@ -4,10 +4,10 @@
 import { tr } from './i18n.js';
 
 const SLOT_LABELS = {
-  morning:      '☀️ Morning',
-  afternoon:    '🌤️ Afternoon',
-  after_dinner: '🌙 After Dinner',
-  overall:      '🔔 Overall',
+  morning:      'Morning',
+  afternoon:    'Afternoon',
+  after_dinner: 'After Dinner',
+  overall:      'Overall',
 };
 
 /** Current local date (YYYY-MM-DD), time (HH:mm) and weekday (0=Mon…6=Sun) in a timezone. */
@@ -61,7 +61,7 @@ const MEAL = { after: 'after meal', before: 'before meal', with: 'with meal' };
 function reminderLine(r, lang = 'en') {
   const m = r.medicine || {};
   const details = [m.dosage, MEAL[m.mealRelation] && tr(lang, MEAL[m.mealRelation])].filter(Boolean).join(', ');
-  return details ? `${r.title} — ${details}` : r.title;
+  return details ? `${r.title}: ${details}` : r.title;
 }
 
 /** 12-hour time for notification titles: "09:00" → "9:00 PM" */
@@ -98,7 +98,7 @@ function buildSlotNotification(slot, time, due, badge, lang = 'en') {
 /** Second nudge when a slot is still not checked in. Replaces the first (same tag). */
 function buildSlotFollowUp(slot, due, badge, lang = 'en') {
   return {
-    title: tr(lang, 'Still pending · {slot}', { slot: tr(lang, SLOT_LABELS[slot] ?? slot).replace(/^\S+\s/, '') }),
+    title: tr(lang, 'Still pending · {slot}', { slot: tr(lang, SLOT_LABELS[slot] ?? slot) }),
     body:  linesFor(due, lang),
     tag:   `da-${slot}`,
     url:   `/checkin/${slot}`,
@@ -115,7 +115,7 @@ function dueCustom(reminders, logsById, day) {
 }
 
 function buildCustomNotification(r, time, badge, lang = 'en') {
-  return { title: tr(lang, '⏰ Reminder · {time}', { time: prettyTime(time) }), body: reminderLine(r, lang), tag: `da-custom-${r.id}`, url: `/checkin/custom-${r.id}`, badge: badge ?? 1 };
+  return { title: tr(lang, 'Reminder · {time}', { time: prettyTime(time) }), body: reminderLine(r, lang), tag: `da-custom-${r.id}`, url: `/checkin/custom-${r.id}`, badge: badge ?? 1 };
 }
 
 function buildCustomFollowUp(r, badge, lang = 'en') {
@@ -174,17 +174,17 @@ function stockStatus(r, completedAts, today) {
 function buildStockNotification(r, st, lang = 'en') {
   const unit = tr(lang, st.unit), v = { title: r.title, n: st.remaining, unit, days: st.daysLeft };
   return {
-    title: tr(lang, st.out ? '🧴 Out of stock' : '🧴 Running low'),
-    body: st.out ? tr(lang, "{title} — time to refill. Tap when you've bought more.", v)
-      : st.daysLeft === null ? tr(lang, "{title} — only {n} {unit} left. Tap when you've bought more.", v)
-      : tr(lang, st.daysLeft === 1 ? "{title} — {n} {unit} left (about 1 day). Tap when you've bought more." : "{title} — {n} {unit} left (about {days} days). Tap when you've bought more.", v),
+    title: tr(lang, st.out ? 'Out of stock' : 'Running low'),
+    body: st.out ? tr(lang, "{title}: time to refill. Tap when you've bought more.", v)
+      : st.daysLeft === null ? tr(lang, "{title}: only {n} {unit} left. Tap when you've bought more.", v)
+      : tr(lang, st.daysLeft === 1 ? "{title}: {n} {unit} left (about 1 day). Tap when you've bought more." : "{title}: {n} {unit} left (about {days} days). Tap when you've bought more.", v),
     tag: `da-stock-${r.id}`,
     url: `/refill/${r.id}`,
   };
 }
 
 function buildSnoozeNotification(label, due, badge, url, lang = 'en') {
-  return { title: tr(lang, '⏰ Snoozed · {label}', { label: tr(lang, label).replace(/^\S+\s/, '') }), body: linesFor(due, lang), tag: `da-snooze-${url}`, url, badge: badge ?? due.length };
+  return { title: tr(lang, 'Snoozed · {label}', { label: tr(lang, label) }), body: linesFor(due, lang), tag: `da-snooze-${url}`, url, badge: badge ?? due.length };
 }
 
 // ── "Remind me again" (alarm-style repeats) ─────────────────────────────────
@@ -219,7 +219,7 @@ function waterDue(w, time, glasses) {
 
 function buildWaterNotification(glasses, goal, lang = 'en') {
   return {
-    title: tr(lang, '💧 Time for water'),
+    title: tr(lang, 'Time for water'),
     body: tr(lang, goal === 1 ? '{n} of {goal} glass so far. Tap to add a glass.' : '{n} of {goal} glasses so far. Tap to add a glass.', { n: glasses, goal }),
     tag: 'da-water',
     url: '/water/add',
@@ -270,9 +270,9 @@ function weeklySummary(rows, today) {
 function buildWeeklyNotification(sum, lang = 'en') {
   const pat = !sum.pattern ? '' : !sum.parts ? sum.pattern : sum.parts.day
     ? tr(lang, '{day} {slot}', { day: tr(lang, sum.parts.day), slot: tr(lang, sum.parts.slot) }) : tr(lang, sum.parts.slot);
-  const body = sum.pct === 100 ? tr(lang, 'Every one of your {n} doses & habits this week — wonderful! 🎉', { n: sum.total })
+  const body = sum.pct === 100 ? tr(lang, 'Every one of your {n} doses & habits this week. Wonderful!', { n: sum.total })
     : tr(lang, '{done} of {total} done this week.', sum) + (pat ? tr(lang, ' Most often missed: {pattern}.', { pattern: pat }) : '');
-  return { title: tr(lang, '📊 Your week: {pct}% done', { pct: sum.pct }), body, tag: 'da-weekly', url: '/progress' };
+  return { title: tr(lang, 'Your week: {pct}% done', { pct: sum.pct }), body, tag: 'da-weekly', url: '/progress' };
 }
 
 // ── Family: "not taken yet" alerts to followers ─────────────────────────────
@@ -307,8 +307,8 @@ function buildFamilyNotification(name, g, linkId, lang = 'en') {
   const titles = g.items.map(r => r.title);
   const list = titles.length === 1 ? titles[0] : titles.length === 2 ? tr(lang, '{a} & {b}', { a: titles[0], b: titles[1] }) : tr(lang, '{a}, {b} +{n} more', { a: titles[0], b: titles[1], n: titles.length - 2 });
   return {
-    title: tr(lang, "👀 {name} hasn't marked a medicine", { name }),
-    body: tr(lang, '{list} ({time}) — not ticked yet.', { list, time: prettyTime(g.time) }),
+    title: tr(lang, "{name} hasn't marked a medicine", { name }),
+    body: tr(lang, '{list} ({time}): not ticked yet.', { list, time: prettyTime(g.time) }),
     tag: `da-family-${linkId}-${g.key}`,
     url: `/family/${linkId}`,
   };
@@ -317,9 +317,9 @@ function buildFamilyNotification(name, g, linkId, lang = 'en') {
 function buildFamilyStockNotification(name, r, st, linkId, lang = 'en') {
   const v = { title: r.title, n: st.remaining, unit: tr(lang, st.unit), days: st.daysLeft };
   return {
-    title: tr(lang, st.out ? "🧴 {name}'s medicine is out of stock" : "🧴 {name}'s medicine is running low", { name }),
-    body: st.out ? tr(lang, '{title} — time to refill.', v) : st.daysLeft === null ? tr(lang, '{title} — {n} {unit} left.', v)
-      : tr(lang, st.daysLeft === 1 ? '{title} — {n} {unit} left (about 1 day).' : '{title} — {n} {unit} left (about {days} days).', v),
+    title: tr(lang, st.out ? "{name}'s medicine is out of stock" : "{name}'s medicine is running low", { name }),
+    body: st.out ? tr(lang, '{title}: time to refill.', v) : st.daysLeft === null ? tr(lang, '{title}: {n} {unit} left.', v)
+      : tr(lang, st.daysLeft === 1 ? '{title}: {n} {unit} left (about 1 day).' : '{title}: {n} {unit} left (about {days} days).', v),
     tag: `da-family-stock-${r.id}`,
     url: `/family/${linkId}`,
   };

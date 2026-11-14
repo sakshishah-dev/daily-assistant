@@ -121,7 +121,7 @@ export default function Login() {
       {/* For visitors without an invite (e.g. recruiters): the full app with sample data, nothing saved */}
       <div className="mt-6 text-center">
         <p className="text-xs text-gray-400 mb-2">{t('Just looking around?')}</p>
-        <button type="button" onClick={startDemo} className="btn-secondary w-full">👀 {t('Try the demo — no sign-up')}</button>
+        <button type="button" onClick={startDemo} className="btn-secondary w-full">{t('Try the demo. No sign-up')}</button>
         <p className="text-[11px] text-gray-400 mt-1.5">{t('Full app with sample data. Nothing is saved or sent.')}</p>
       </div>
 

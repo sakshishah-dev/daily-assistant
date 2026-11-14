@@ -1,3 +1,4 @@
+import { Sun, CloudSun, Moon, Bell, type LucideIcon } from 'lucide-react';
 import type { NotificationSlot } from '../types';
 import { t } from '../lib/i18n';
 
@@ -10,18 +11,18 @@ export const CATEGORIES = {
   task:     { label: t('Task'),     color: '#f59e0b', bg: '#fffbeb' },
 } as const;
 
-export const NOTIFICATION_SLOTS: Record<NotificationSlot, { label: string; emoji: string; defaultTime: string; description: string }> = {
-  morning:     { label: t('Morning'),     emoji: '☀️',  defaultTime: '08:00', description: t('Start of day') },
-  afternoon:   { label: t('Afternoon'),   emoji: '🌤️', defaultTime: '13:00', description: t('After lunch')  },
-  after_dinner:{ label: t('After Dinner'),emoji: '🌙',  defaultTime: '20:30', description: t('Evening')      },
-  overall:     { label: t('Night'),     emoji: '🔔',  defaultTime: '22:00', description: t('Night review') },
+export const NOTIFICATION_SLOTS: Record<NotificationSlot, { label: string; icon: LucideIcon; defaultTime: string; description: string }> = {
+  morning:     { label: t('Morning'),     icon: Sun,      defaultTime: '08:00', description: t('Start of day') },
+  afternoon:   { label: t('Afternoon'),   icon: CloudSun, defaultTime: '13:00', description: t('After lunch')  },
+  after_dinner:{ label: t('After Dinner'),icon: Moon,     defaultTime: '20:30', description: t('Evening')      },
+  overall:     { label: t('Night'),     icon: Bell,     defaultTime: '22:00', description: t('Night review') },
 };
 
 export const SLOT_ORDER: NotificationSlot[] = ['morning', 'afternoon', 'after_dinner', 'overall'];
 
 export const REPEAT_OPTIONS = [
   { value: 'daily',    label: t('Every day')          },
-  { value: 'weekdays', label: t('Weekdays (Mon–Fri)')  },
+  { value: 'weekdays', label: t('Weekdays (Mon-Fri)')  },
   { value: 'weekly',   label: t('Specific day(s) each week') },
   { value: 'monthly',  label: t('Specific date(s) each month') },
   { value: 'once',     label: t('One time only')       },

@@ -17,8 +17,8 @@ export default function WaterAdd() {
     done.current = true;
     const goal = profile.water?.goal ?? 8;
     addWater(getTodayIST(), 1)
-      .then(n => toast.success(n >= goal ? t('💧 {n} of {goal} — goal reached!', { n, goal }) : t('💧 Glass added — {n} of {goal}', { n, goal }), { id: 'water' }))
-      .catch(() => toast.error(t("Couldn't add the glass — check your connection"), { id: 'water' }))
+      .then(n => toast.success(n >= goal ? t('{n} of {goal}. Goal reached!', { n, goal }) : t('Glass added: {n} of {goal}', { n, goal }), { id: 'water' }))
+      .catch(() => toast.error(t("Couldn't add the glass. Check your connection"), { id: 'water' }))
       .finally(() => navigate('/', { replace: true }));
   }, [navigate, profile.water?.goal]);
 

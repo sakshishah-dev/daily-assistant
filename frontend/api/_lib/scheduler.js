@@ -210,7 +210,7 @@ export async function checkAndSend() {
         if (r && r.custom_time) due = dueCustom([r], logsById, { ...day, time: r.custom_time });
       } else {
         due = dueReminders(rems, logsById, z.key, day);
-        label = SLOT_LABELS[z.key] || z.key;   // emoji stripped after translating
+        label = SLOT_LABELS[z.key] || z.key;
       }
       if (!due.length) continue;
       // A snoozed reminder replaces any further repeats for that check-in today.
@@ -341,9 +341,9 @@ export async function emailNewFeedback() {
         from: `Daily Assistant <${SMTP_USER}>`,
         to: FEEDBACK_EMAIL_TO,
         replyTo: u?.user?.email || undefined,
-        subject: `💬 New feedback from ${prof?.display_name || u?.user?.email || 'a tester'}`,
+        subject: `New feedback from ${prof?.display_name || u?.user?.email || 'a tester'}`,
         text: [
-          f.message, '', '—',
+          f.message, '', '-',
           `From: ${prof?.display_name || '(no name)'} <${u?.user?.email || 'unknown'}>`,
           `When: ${new Date(f.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`,
           `Device: ${f.user_agent || 'unknown'}`,
@@ -409,8 +409,8 @@ export async function emailNewErrors(now = new Date()) {
   try {
     await mailer().sendMail({
       from: `Daily Assistant <${SMTP_USER}>`, to: FEEDBACK_EMAIL_TO,
-      subject: `⚠️ ${fresh.length} app error${fresh.length === 1 ? '' : 's'} on testers' phones`,
-      text: `${body}\n\n—\nForward this to Claude to fix it. Nothing here includes medicine details.`,
+      subject: `${fresh.length} app error${fresh.length === 1 ? '' : 's'} on testers' phones`,
+      text: `${body}\n\n-\nForward this to Claude to fix it. Nothing here includes medicine details.`,
     });
     console.log(`[errors] emailed ${fresh.length}`);
     return fresh.length;

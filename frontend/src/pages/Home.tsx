@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Check, SkipForward, Clock, UserRound } from 'lucide-react';
+import { Plus, Check, SkipForward, Clock, UserRound, Pill, Package, Plane, Bell, CheckCircle2, type LucideIcon } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getGreeting, getTodayIST, formatTime, getCurrentTimeIST, isExcused, isMissed } from '../utils/dateHelpers';
 import { NOTIFICATION_SLOTS, SLOT_ORDER, CATEGORIES } from '../utils/constants';
@@ -17,7 +17,7 @@ import type { NotificationSlot, Reminder, TaskInstance } from '../types';
 import toast from 'react-hot-toast';
 import { t as tr, locale, shortMonth} from '../lib/i18n';
 
-type Group = { key: string; label: string; emoji: string; time: string; tasks: TaskInstance[] };
+type Group = { key: string; label: string; Icon: LucideIcon; time: string; tasks: TaskInstance[] };
 
 const SLOT_SHORT: Record<NotificationSlot, string> = { morning: tr('Morning'), afternoon: tr('Afternoon'), after_dinner: tr('Dinner'), overall: tr('Night') };
 
@@ -83,11 +83,11 @@ export default function Home() {
   // Slot groups + any custom-time reminders
   const groups: Group[] = useMemo(() => {
     const out: Group[] = SLOT_ORDER.map((s: NotificationSlot) => ({
-      key: s, label: NOTIFICATION_SLOTS[s].label, emoji: NOTIFICATION_SLOTS[s].emoji,
+      key: s, label: NOTIFICATION_SLOTS[s].label, Icon: NOTIFICATION_SLOTS[s].icon,
       time: settings.notificationSlotTimes[s], tasks: todayTasks.filter(t => t.slot === s).sort(byCategory),
     }));
     const custom = todayTasks.filter(t => !t.slot).sort(byCategory);
-    if (custom.length) out.push({ key: 'custom', label: tr('Other times'), emoji: '⏰', time: '', tasks: custom });
+    if (custom.length) out.push({ key: 'custom', label: tr('Other times'), Icon: Clock, time: '', tasks: custom });
     return out.filter(g => g.tasks.length);
   }, [todayTasks, settings.notificationSlotTimes]);
 
@@ -109,14 +109,14 @@ export default function Home() {
         {tr('Undo')}
       </button>
     </span>
-  ), { id: 'today-action', duration: 4000, icon: '✓' });
+  ), { id: 'today-action', duration: 4000 });
 
   // After an action, celebrate finishing a slot or the whole day.
   const afterComplete = (t: TaskInstance) => {
     const remaining = todayTasks.filter(x => x.id !== t.id && x.status === 'pending');
-    if (remaining.length === 0) { toast.dismiss('today-action'); celebrate(tr('Day complete! 🎉')); return; }
+    if (remaining.length === 0) { toast.dismiss('today-action'); celebrate(tr('Day complete!')); return; }
     if (t.slot && !remaining.some(x => x.slot === t.slot)) {
-      toast.success(tr('{slot} done ✨', { slot: NOTIFICATION_SLOTS[t.slot].label }), { id: 'today-action' });
+      toast.success(tr('{slot} done', { slot: NOTIFICATION_SLOTS[t.slot].label }), { id: 'today-action' });
       return;
     }
     undoToast(tr(actionWord(reminderById.get(t.reminderId)) === 'taken' ? '{title} taken' : '{title} done', { title: t.title }), t.id);
@@ -124,7 +124,7 @@ export default function Home() {
 
   const onToggle = (t: TaskInstance) => {
     if (t.status === 'pending') { completeTask(t.id); afterComplete(t); }
-    else { undoTask(t.id); toast(tr('Undone: {title}', { title: t.title }), { id: 'today-action', icon: '↩️', duration: 1500 }); }
+    else { undoTask(t.id); toast(tr('Undone: {title}', { title: t.title }), { id: 'today-action', duration: 1500 }); }
   };
   const onSkip = (t: TaskInstance) => {
     skipTask(t.id);
@@ -167,11 +167,11 @@ export default function Home() {
             className={`flex items-center gap-3 rounded-2xl px-4 py-3 border ${s.out
               ? 'bg-red-50 border-red-200 dark:bg-red-500/10 dark:border-red-500/30'
               : 'bg-saffron-500/10 border-saffron-400/40'}`}>
-            <span className="text-xl" aria-hidden="true">🧴</span>
+            <Package size={22} strokeWidth={1.7} className="text-saffron-600" aria-hidden="true" />
             <span className="flex-1 min-w-0">
               <span className="block text-sm font-semibold text-gray-900 dark:text-white truncate">{r.title}</span>
               <span className={`block text-xs ${s.out ? 'text-red-600 dark:text-red-400' : 'text-saffron-600'}`}>
-                {s.out ? tr('Out of stock — time to refill') : s.daysLeft === null ? tr('Only {n} {unit} left', { n: s.remaining, unit: tr(s.unit) }) : tr(s.daysLeft === 1 ? 'About 1 day left · {n} {unit}' : 'About {days} days left · {n} {unit}', { days: s.daysLeft, n: s.remaining, unit: tr(s.unit) })}
+                {s.out ? tr('Out of stock. Time to refill') : s.daysLeft === null ? tr('Only {n} {unit} left', { n: s.remaining, unit: tr(s.unit) }) : tr(s.daysLeft === 1 ? 'About 1 day left · {n} {unit}' : 'About {days} days left · {n} {unit}', { days: s.daysLeft, n: s.remaining, unit: tr(s.unit) })}
               </span>
             </span>
             <span className="text-xs font-semibold text-brand-600 dark:text-brand-400">{tr('Refill')}</span>
@@ -187,7 +187,7 @@ export default function Home() {
       {sosMeds.length > 0 && (
         <section className="mb-5">
           <div className="flex items-center gap-2 mb-2 px-1">
-            <span className="text-base">🆘</span>
+            <span className="text-brand-600 dark:text-brand-400"><Pill size={18} strokeWidth={1.8} /></span>
             <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{tr('Only when needed')}</h2>
           </div>
           <div className="card divide-y divide-gray-100 dark:divide-[#2C2C2E] overflow-hidden">
@@ -242,7 +242,7 @@ export default function Home() {
       {/* Holiday mode */}
       {paused && (
         <div className="mt-4 mb-14 rounded-2xl px-4 py-3 border bg-saffron-500/10 border-saffron-400/40 flex items-center gap-3">
-          <span className="text-xl" aria-hidden="true">🌴</span>
+          <Plane size={22} strokeWidth={1.7} className="text-saffron-600" aria-hidden="true" />
           <span className="flex-1 min-w-0">
             <span className="block text-sm font-semibold text-gray-900 dark:text-white">{tr('Holiday mode')}</span>
             <span className="block text-xs text-saffron-600">{tr('Reminders paused until {date}', { date: pausedLabel })}</span>
@@ -255,10 +255,10 @@ export default function Home() {
       {/* Not set up for notifications yet */}
       {fresh && !profile.push_enabled && !paused && !isDemo() && (
         <Link to="/setup" className="mt-4 mb-1 rounded-2xl px-4 py-3 border bg-white dark:bg-[#1C1C1E] border-brand-200 dark:border-white/10 flex items-center gap-3">
-          <span className="text-xl" aria-hidden="true">🔔</span>
+          <Bell size={22} strokeWidth={1.7} className="text-brand-600" aria-hidden="true" />
           <span className="flex-1 min-w-0">
             <span className="block text-sm font-semibold text-gray-900 dark:text-white">{tr("Reminders can't reach you yet")}</span>
-            <span className="block text-xs text-gray-500 dark:text-gray-400">{tr('Finish setup — takes a minute')}</span>
+            <span className="block text-xs text-gray-500 dark:text-gray-400">{tr('Finish setup (takes a minute)')}</span>
           </span>
           <span className="text-xs font-semibold text-brand-600 dark:text-brand-400">{tr('Set up')}</span>
         </Link>
@@ -269,10 +269,10 @@ export default function Home() {
       ) : todayTasks.length === 0 ? (
         <>
           <EmptyState
-            title={paused ? tr('Enjoy your break 🌴') : reminders.length ? tr('Nothing scheduled today') : tr('Add your first reminder')}
-            text={paused ? tr('Nothing is due while holiday mode is on — no missed doses will be counted.')
+            title={paused ? tr('Enjoy your break') : reminders.length ? tr('Nothing scheduled today') : tr('Add your first reminder')}
+            text={paused ? tr('Nothing is due while holiday mode is on. No missed doses will be counted.')
               : reminders.length
-              ? tr('Enjoy a free day — your reminders will be back when they are due.')
+              ? tr('Enjoy a free day. Your reminders will be back when they are due.')
               : tr('Add a medicine or a daily habit, and we will gently nudge you at the right time.')}
             action={paused ? undefined : <button className="btn-primary" onClick={() => navigate('/reminders/add')}><Plus size={16} /> {tr('Add reminder')}</button>}
           />
@@ -288,7 +288,7 @@ export default function Home() {
                 {allDone ? (
                   <>
                     <p className="text-xs text-gray-500 dark:text-gray-400">{tr('Today')}</p>
-                    <p className="text-base font-semibold text-gray-900 dark:text-white">{tr('All done for today 🎉')}</p>
+                    <p className="text-base font-semibold text-gray-900 dark:text-white">{tr('All done for today')}</p>
                     <Link to="/progress" className="text-xs font-semibold text-brand-600 dark:text-brand-400">{tr('See your progress →')}</Link>
                   </>
                 ) : (
@@ -346,7 +346,7 @@ export default function Home() {
             return (
               <section key={g.key} className="mb-4">
                 <div className="flex items-center gap-2 mb-2 px-1">
-                  <span className="text-base">{complete ? '✅' : g.emoji}</span>
+                  <span className={complete ? 'text-emerald-600' : 'text-brand-600 dark:text-brand-400'}>{complete ? <CheckCircle2 size={18} strokeWidth={1.9} /> : <g.Icon size={18} strokeWidth={1.8} />}</span>
                   <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{g.label}</h2>
                   {g.time && <span className="text-xs text-gray-400">{formatTime(g.time)}</span>}
                   {isCurrent && (

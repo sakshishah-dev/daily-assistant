@@ -16,17 +16,17 @@ export default function WaterCard({ water }: { water: WaterSettings }) {
   const onAdd = async () => {
     try {
       const n = await add();
-      if (n === goal) celebrate(t('Water goal reached! 💧'));
-    } catch { toast.error(t("Couldn't add the glass — check your connection"), { id: 'water' }); }
+      if (n === goal) celebrate(t('Water goal reached!'));
+    } catch { toast.error(t("Couldn't add the glass. Check your connection"), { id: 'water' }); }
   };
   const onUndo = async () => {
-    try { await remove(); } catch { toast.error(t("Couldn't undo — check your connection"), { id: 'water' }); }
+    try { await remove(); } catch { toast.error(t("Couldn't undo. Check your connection"), { id: 'water' }); }
   };
 
   return (
     <div className="mb-5 rounded-2xl px-4 py-3.5 border bg-sky-50 border-sky-200 dark:bg-sky-500/10 dark:border-sky-500/25">
       <div className="flex items-center justify-between">
-        <Link to="/water" className="text-[15px] font-semibold text-gray-900 dark:text-white">💧 {t('Water')}</Link>
+        <Link to="/water" className="text-[15px] font-semibold text-gray-900 dark:text-white">{t('Water')}</Link>
         {loaded ? (
           <span className="text-[13px] font-semibold text-sky-700 dark:text-sky-300">
             {t(goal === 1 ? '{n} of {goal} glass' : '{n} of {goal} glasses', { n: glasses, goal })}{glasses > goal ? ` (+${glasses - goal})` : ''}
@@ -40,7 +40,7 @@ export default function WaterCard({ water }: { water: WaterSettings }) {
       </div>
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs text-gray-500 dark:text-gray-400 min-w-0 truncate">
-          {reached ? t('Goal reached — well done!') : next ? t('Next reminder {time}', { time: formatTime(next) }) : t('No more reminders today')}
+          {reached ? t('Goal reached: well done!') : next ? t('Next reminder {time}', { time: formatTime(next) }) : t('No more reminders today')}
         </span>
         <span className="flex gap-2 flex-shrink-0">
           {glasses > 0 && (

@@ -2,7 +2,7 @@
 const keyType = k => !k ? 'missing'
   : k.startsWith('sb_secret_') ? 'secret'
   : k.startsWith('eyJ') ? 'legacy service key'
-  : 'WRONG — use a Supabase secret key (sb_secret_…)';
+  : 'WRONG: use a Supabase secret key (sb_secret_…)';
 
 export default function handler(_req, res) {
   const has = k => Boolean(process.env[k]);

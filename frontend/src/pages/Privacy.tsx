@@ -7,7 +7,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
     title: 'Not medical advice',
     body: [
       'Daily Assistant is a reminder tool. It only reminds you of the schedule you enter.',
-      'It does not recommend medicines, change doses or make medical decisions. Always follow your doctor or pharmacist. Do not rely on the app as your only reminder for critical medicines — notifications can be delayed or missed by your phone.',
+      'It does not recommend medicines, change doses or make medical decisions. Always follow your doctor or pharmacist. Do not rely on the app as your only reminder for critical medicines. Notifications can be delayed or missed by your phone.',
     ],
   },
   {

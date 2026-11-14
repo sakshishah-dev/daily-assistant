@@ -59,7 +59,7 @@ export default function TasksWeek() {
           onClick={() => data && setStart(shiftDate(data.start, -7))}
         ><ChevronLeft size={18} /></button>
         <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
-          {data ? `${fmtShort(data.start)} – ${fmtShort(data.end)}` : '…'}
+          {data ? `${fmtShort(data.start)} - ${fmtShort(data.end)}` : '…'}
           {data && isCurrentWeek && <span className="ml-2 text-[10px] bg-brand-100 dark:bg-white/[0.08] text-brand-600 px-1.5 py-0.5 rounded-full">{tr('This week')}</span>}
         </p>
         <button
@@ -128,7 +128,7 @@ export default function TasksWeek() {
                   <td className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 pt-2 pr-2">{tr('Done')}</td>
                   {dayTotals.map((t, i) => (
                     <td key={data.days[i]} className="text-center text-[10px] font-semibold text-gray-500 dark:text-gray-400 pt-2">
-                      {t.total ? `${t.done}/${t.total}` : '—'}
+                      {t.total ? `${t.done}/${t.total}` : '-'}
                     </td>
                   ))}
                 </tr>

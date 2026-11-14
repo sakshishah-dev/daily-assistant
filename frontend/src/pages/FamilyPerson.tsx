@@ -81,7 +81,7 @@ export default function FamilyPerson() {
         </div>
       </div>
 
-      {d.paused && <div className="rounded-2xl px-4 py-3 mb-4 bg-saffron-500/10 border border-saffron-400/40 text-sm text-saffron-700">🌴 {p.paused_until ? tr('{name} is on holiday — reminders paused until {date}.', { name, date: new Date(p.paused_until + 'T00:00:00').toLocaleDateString(locale(), { day: 'numeric', month: shortMonth() }) }) : tr('{name} is on holiday — reminders paused.', { name })}</div>}
+      {d.paused && <div className="rounded-2xl px-4 py-3 mb-4 bg-saffron-500/10 border border-saffron-400/40 text-sm text-saffron-700">{p.paused_until ? tr('{name} is on holiday. Reminders paused until {date}.', { name, date: new Date(p.paused_until + 'T00:00:00').toLocaleDateString(locale(), { day: 'numeric', month: shortMonth() }) }) : tr('{name} is on holiday. Reminders paused.', { name })}</div>}
 
       <p className="section-label mb-2 px-1">{tr('Today')} · {tr('{n} of {total} taken', { n: d.taken, total: d.today.length })}</p>
       {d.today.length === 0 ? <p className="card p-4 text-sm text-gray-400 mb-4">{tr('No medicines scheduled today.')}</p> : (
@@ -117,7 +117,7 @@ export default function FamilyPerson() {
         <div className="space-y-2 mb-4">
           {d.low.map(l => (
             <div key={l.r.id} className={`rounded-2xl px-4 py-3 border text-sm ${l.out ? 'bg-red-50 border-red-200 text-red-600 dark:bg-red-500/10' : 'bg-saffron-500/10 border-saffron-400/40 text-saffron-700'}`}>
-              🧴 {l.r.title}: {l.out ? tr('out of stock') : tr('only {n} {unit} left', { n: l.remaining, unit: tr(l.unit) })}
+              {l.r.title}: {l.out ? tr('out of stock') : tr('only {n} {unit} left', { n: l.remaining, unit: tr(l.unit) })}
             </div>
           ))}
         </div>
@@ -129,12 +129,12 @@ export default function FamilyPerson() {
           {days.map(x => (
             <div key={x.date}>
               <div className={`h-9 rounded-lg flex items-center justify-center text-[11px] font-semibold ${x.pct === null ? 'bg-gray-100 dark:bg-[#2C2C2E] text-gray-400'
-                : x.pct >= 80 ? 'bg-brand-600 text-white' : x.pct >= 50 ? 'bg-saffron-500 text-white' : 'bg-red-400 text-white'}`}>{x.pct === null ? '–' : `${x.pct}`}</div>
+                : x.pct >= 80 ? 'bg-brand-600 text-white' : x.pct >= 50 ? 'bg-saffron-500 text-white' : 'bg-red-400 text-white'}`}>{x.pct === null ? '-' : `${x.pct}`}</div>
               <span className="text-[10px] text-gray-400">{new Date(x.date + 'T00:00:00').toLocaleDateString(locale(), { weekday: 'narrow' })}</span>
             </div>
           ))}
         </div>
-        {d.week?.pattern && <p className="text-xs text-saffron-600 mt-3">💡 {tr('Most often missed: {pattern}', { pattern: d.week.pattern })}</p>}
+        {d.week?.pattern && <p className="text-xs text-saffron-600 mt-3">{tr('Most often missed: {pattern}', { pattern: d.week.pattern })}</p>}
       </div>
 
       <div className="flex items-center justify-between mb-2 px-1">

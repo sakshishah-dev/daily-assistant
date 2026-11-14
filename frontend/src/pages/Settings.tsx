@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  Sun, Moon, Smartphone, Trash2, Download, Bell, BellOff, BellRing, Loader2,
-  LogOut, MessageSquare, Shield, UploadCloud, User, Cloud, CloudOff,
-} from 'lucide-react';
+import { Sun, Moon, Smartphone, Trash2, Download, Bell, BellOff, BellRing, Loader2, LogOut, MessageSquare, Shield, UploadCloud, User, Cloud, CloudOff, Mail, Users, BookOpen } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { NOTIFICATION_SLOTS, SLOT_ORDER } from '../utils/constants';
@@ -56,7 +53,7 @@ export default function Settings() {
 
   const handleEnable = async () => {
     const ok = await subscribe();
-    if (ok) toast.success(t('Push notifications enabled! 🔔'));
+    if (ok) toast.success(t('Push notifications enabled!'));
     else if (Notification?.permission === 'denied') toast.error(t('Notifications blocked. Enable them in iPhone Settings → Notifications → Daily Assistant.'));
     else toast.error(t('Could not enable notifications. Please try again.'));
   };
@@ -102,7 +99,7 @@ export default function Settings() {
   };
 
   const deleteAccount = async () => {
-    const ok = await confirmDialog({ title: t('Delete your account?'), message: t('This permanently deletes your account and ALL your data — reminders, history and daily tasks. It cannot be undone.'), confirmText: t('Delete forever'), tone: 'danger', requireText: 'DELETE' });
+    const ok = await confirmDialog({ title: t('Delete your account?'), message: t('This permanently deletes your account and ALL your data. Reminders, history and daily tasks. It cannot be undone.'), confirmText: t('Delete forever'), tone: 'danger', requireText: 'DELETE' });
     if (!ok) return;
     setDeleting(true);
     try {
@@ -127,7 +124,7 @@ export default function Settings() {
         <h1 className="page-title">{t('Settings')}</h1>
         <span className={`flex items-center gap-1 text-[11px] ${syncState === 'offline' ? 'text-amber-500' : 'text-gray-400'}`}>
           {syncState === 'offline' ? <CloudOff size={14} /> : <Cloud size={14} />}
-          {syncState === 'synced' ? t('Saved') : syncState === 'syncing' ? t('Saving…') : t('Offline — will sync')}
+          {syncState === 'synced' ? t('Saved') : syncState === 'syncing' ? t('Saving…') : t('Offline: will sync')}
         </span>
       </div>
 
@@ -155,10 +152,10 @@ export default function Settings() {
         <p className="text-xs text-gray-400 mb-4">{t('Set the 4 daily times when reminders fire')}</p>
         <div className="space-y-3">
           {SLOT_ORDER.map(slot => {
-            const def = NOTIFICATION_SLOTS[slot];
+            const def = NOTIFICATION_SLOTS[slot]; const SlotIcon = def.icon;
             return (
               <div key={slot} className="flex items-center gap-3">
-                <span className="text-xl w-7 text-center flex-shrink-0">{def.emoji}</span>
+                <span className="w-7 flex justify-center flex-shrink-0 text-brand-600 dark:text-brand-400"><SlotIcon size={20} strokeWidth={1.8} /></span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-800 dark:text-white leading-tight">{def.label}</p>
                   <p className="text-xs text-gray-400">{def.description}</p>
@@ -193,11 +190,11 @@ export default function Settings() {
             <p className="text-sm font-semibold text-gray-900 dark:text-white">{t('Push Notifications')}</p>
             <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">
               {isSubscribed
-                ? t('Active — notifications fire at each slot time, even when the app is closed.')
+                ? t('Active: notifications fire at each slot time, even when the app is closed.')
                 : isDenied
                 ? t('Blocked in browser/Safari settings. Go to Settings → Safari → Websites → Notifications and allow this site.')
                 : isUnsupported
-                ? (isDemo() ? t('Not available in the demo — notifications need a real (invited) account.') : t('Your browser does not support push notifications. Install the app first: Safari → Share → Add to Home Screen.'))
+                ? (isDemo() ? t('Not available in the demo. Notifications need a real (invited) account.') : t('Your browser does not support push notifications. Install the app first: Safari → Share → Add to Home Screen.'))
                 : t('Get notified at each slot time, even when the app is closed on iPhone.')}
             </p>
           </div>
@@ -236,7 +233,7 @@ export default function Settings() {
         {!isSubscribed && !isUnsupported && !isDenied && (
           <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl">
             <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
-              <Rich text={t('**iPhone:** First install the app — Safari → Share → Add to Home Screen. Then open it from the home screen and enable notifications here.')} />
+              <Rich text={t('**iPhone:** First install the app. Safari → Share → Add to Home Screen. Then open it from the home screen and enable notifications here.')} />
             </p>
           </div>
         )}
@@ -246,10 +243,10 @@ export default function Settings() {
       {/* Owner: invite people from the phone */}
       {profile.is_admin && (
         <Link to="/invites" className="card p-4 mb-4 flex items-center gap-3 border-brand-200/70 dark:border-white/10">
-          <span className="text-xl" aria-hidden="true">✉️</span>
+          <Mail size={22} strokeWidth={1.7} className="text-brand-600 dark:text-brand-400" aria-hidden="true" />
           <span className="flex-1 min-w-0">
             <span className="block text-sm font-semibold text-gray-900 dark:text-white">{t('Invite people')}</span>
-            <span className="block text-xs text-gray-400">{t('Add family & friends — only you see this')}</span>
+            <span className="block text-xs text-gray-400">{t('Add family & friends (only you see this)')}</span>
           </span>
           <span className="text-gray-300">›</span>
         </Link>
@@ -257,7 +254,7 @@ export default function Settings() {
 
       {/* Family */}
       <Link to="/family" className="card p-4 mb-4 flex items-center gap-3">
-        <span className="text-xl" aria-hidden="true">👪</span>
+        <Users size={22} strokeWidth={1.7} className="text-brand-600 dark:text-brand-400" aria-hidden="true" />
         <span className="flex-1 min-w-0">
           <span className="block text-sm font-semibold text-gray-900 dark:text-white">{t('Family')}</span>
           <span className="block text-xs text-gray-400">{t('Follow a parent\'s medicines, or let family follow yours')}</span>
@@ -271,11 +268,11 @@ export default function Settings() {
       {/* Water reminders */}
       <Link to="/water" className="card p-4 mb-4 flex items-center justify-between">
         <span className="min-w-0">
-          <span className="block text-sm font-semibold text-gray-900 dark:text-white">{t('💧 Water reminders')}</span>
+          <span className="block text-sm font-semibold text-gray-900 dark:text-white">{t('Water reminders')}</span>
           <span className="block text-xs text-gray-400 mt-0.5 truncate">
             {profile.water?.on
-              ? t('Every {every}, {from} – {to} · goal {goal}', { every: profile.water.every < 60 ? t('{n} min', { n: profile.water.every }) : profile.water.every === 60 ? t('1 hr') : t('{n} hrs', { n: profile.water.every / 60 }), from: formatTime(profile.water.from), to: formatTime(profile.water.to), goal: profile.water.goal })
-              : t('Off — tap to set up')}
+              ? t('Every {every}, {from} - {to} · goal {goal}', { every: profile.water.every < 60 ? t('{n} min', { n: profile.water.every }) : profile.water.every === 60 ? t('1 hr') : t('{n} hrs', { n: profile.water.every / 60 }), from: formatTime(profile.water.from), to: formatTime(profile.water.to), goal: profile.water.goal })
+              : t('Off: tap to set up')}
           </span>
         </span>
         <span className={`text-xs font-semibold ${profile.water?.on ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400'}`}>{profile.water?.on ? t('On') : t('Off')}</span>
@@ -283,7 +280,7 @@ export default function Settings() {
 
       {/* Follow-up reminder */}
       <div className="card p-4 mb-4">
-        <p className="text-sm font-semibold text-gray-900 dark:text-white">{t('Remind me again — default')}</p>
+        <p className="text-sm font-semibold text-gray-900 dark:text-white">{t('Remind me again (default)')}</p>
         <p className="text-xs text-gray-400 mt-0.5 mb-3 leading-relaxed">
           {t('Used for reminders that don\'t have their own setting. You can change it per reminder when adding or editing one.')}
         </p>
@@ -302,16 +299,16 @@ export default function Settings() {
       </div>
 
       <Link to="/guide" className="card p-4 mb-4 flex items-center gap-3">
-        <span className="text-xl" aria-hidden="true">📖</span>
+        <BookOpen size={22} strokeWidth={1.7} className="text-brand-600 dark:text-brand-400" aria-hidden="true" />
         <span className="flex-1 min-w-0">
           <span className="block text-sm font-semibold text-gray-900 dark:text-white">{t('What you can do')}</span>
-          <span className="block text-xs text-gray-400">{t('Every feature in one page — easy to show others')}</span>
+          <span className="block text-xs text-gray-400">{t('Every feature in one page. Easy to show others')}</span>
         </span>
         <span className="text-gray-300">›</span>
       </Link>
 
       <Link to="/setup" className="card p-4 mb-4 flex items-center gap-3">
-        <span className="text-xl" aria-hidden="true">📲</span>
+        <Smartphone size={22} strokeWidth={1.7} className="text-brand-600 dark:text-brand-400" aria-hidden="true" />
         <span className="flex-1 min-w-0">
           <span className="block text-sm font-semibold text-gray-900 dark:text-white">{t('Install & notification help')}</span>
           <span className="block text-xs text-gray-400">{t('Add to Home Screen, turn on reminders, send a test')}</span>

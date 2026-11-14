@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Users } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { family, type InvitePreview } from '../lib/family';
@@ -19,14 +20,14 @@ export default function FamilyJoin() {
 
   const REASONS: Record<string, string> = {
     NOT_FOUND: t('This invite link is not valid.'), USED: t('This invite has already been used.'),
-    EXPIRED: t('This invite has expired. Ask them to send a new one.'), OWN_INVITE: t('This is your own invite — send it to your family member.'),
+    EXPIRED: t('This invite has expired. Ask them to send a new one.'), OWN_INVITE: t('This is your own invite. Send it to your family member.'),
   };
 
   const accept = async () => {
     setBusy(true);
     try {
       await family.accept(code, p?.inviter_role === 'carer' ? { canManage } : { nickname: nickname || p?.inviter_name || '' });
-      toast.success(t('Connected! 👪'), { id: 'fam' });
+      toast.success(t('Connected!'), { id: 'fam' });
       navigate('/family', { replace: true });
     } catch (e) { toast.error((e as Error).message, { id: 'fam' }); setBusy(false); }
   };
@@ -35,7 +36,7 @@ export default function FamilyJoin() {
   return (
     <div className="page pt-10">
       <div className="text-center mb-6">
-        <p className="text-4xl mb-2">👪</p>
+        <Users size={40} strokeWidth={1.5} className="mx-auto mb-2 text-brand-600" />
         <h1 className="page-title">{t('Family invite')}</h1>
       </div>
       {error ? <div className="card p-5 text-center text-sm text-red-500">{error}</div>
@@ -52,10 +53,10 @@ export default function FamilyJoin() {
             <>
               <p className="text-[15px] text-gray-900 dark:text-white mb-1"><Rich text={t('**{name}** would like you to keep an eye on their medicines.', { name })} /></p>
               <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1 my-3">
-                <li>{t('✅ See what they\'ve taken today')}</li>
-                <li>{t('🔔 Get an alert if a dose isn\'t marked')}</li>
-                <li>{t('🧴 Know when a medicine is running low')}</li>
-                {p.can_manage && <li>{t('✏️ They also let you manage their medicines')}</li>}
+                <li>{t('See what they\'ve taken today')}</li>
+                <li>{t('Get an alert if a dose isn\'t marked')}</li>
+                <li>{t('Know when a medicine is running low')}</li>
+                {p.can_manage && <li>{t('They also let you manage their medicines')}</li>}
               </ul>
               <label className="label" htmlFor="join-nick">{t('What do you call them?')}</label>
               <input id="join-nick" className="input mb-4" placeholder={name} value={nickname} onChange={e => setNickname(e.target.value)} maxLength={40} />
@@ -64,16 +65,16 @@ export default function FamilyJoin() {
             <>
               <p className="text-[15px] text-gray-900 dark:text-white mb-1"><Rich text={t('**{name}** would like to follow your medicines.', { name })} /></p>
               <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1 my-3">
-                <li>{t('👀 They\'ll see your medicines and what you\'ve taken')}</li>
-                <li>{t('🔔 They\'ll get an alert if you forget a dose')}</li>
-                <li>{t('🔒 Your habits, water and daily tasks stay private')}</li>
-                <li>{t('✋ You can stop this anytime in Settings → Family')}</li>
+                <li>{t('They\'ll see your medicines and what you\'ve taken')}</li>
+                <li>{t('They\'ll get an alert if you forget a dose')}</li>
+                <li>{t('Your habits, water and daily tasks stay private')}</li>
+                <li>{t('You can stop this anytime in Settings → Family')}</li>
               </ul>
               <button type="button" onClick={() => setCanManage(v => !v)} aria-pressed={canManage}
                 className="w-full flex items-center justify-between p-3 mb-4 rounded-xl border border-gray-200 dark:border-[#3A3A3C]">
                 <span className="text-left">
                   <span className="block text-sm font-medium text-gray-800 dark:text-gray-100">{t('Also let them manage my medicines')}</span>
-                  <span className="block text-xs text-gray-400">{canManage ? t('They can add/change medicines and tick doses for you') : t('Off — they can only see')}</span>
+                  <span className="block text-xs text-gray-400">{canManage ? t('They can add/change medicines and tick doses for you') : t('Off: they can only see')}</span>
                 </span>
                 <span className={`w-11 h-6 rounded-full p-0.5 transition-colors flex-shrink-0 ${canManage ? 'bg-brand-600' : 'bg-gray-300 dark:bg-[#3A3A3C]'}`}>
                   <span className={`block w-5 h-5 rounded-full bg-white shadow transition-transform ${canManage ? 'translate-x-5' : ''}`} />

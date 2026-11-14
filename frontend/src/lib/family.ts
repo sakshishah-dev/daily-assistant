@@ -4,6 +4,7 @@ import type { Reminder, TaskInstance, NotificationSlotTimes } from '../types';
 import { APP_URL } from './admin';
 import { isDemo, demoGet, demoSet, DemoOnly } from './demo';
 import { t } from './i18n';
+import { installStepsText } from './installText';
 
 // Demo mode: Maa (followed) and Rohan (follower) live in a local store.
 interface DemoFamily { people: FamilyPerson[]; data: Record<string, { reminders: Reminder[]; logs: TaskInstance[] }> }
@@ -20,24 +21,25 @@ export interface PendingInvite { id: string; code: string; role: 'owner' | 'care
 export interface InvitePreview { inviter_name: string | null; inviter_role: 'owner' | 'carer' | null; can_manage: boolean; valid: boolean; reason: string | null }
 
 const MESSAGES: Record<string, string> = {
-  NOT_FOUND: 'This invite link is not valid', USED: 'This invite has already been used', EXPIRED: 'This invite has expired — ask for a new one',
-  OWN_INVITE: 'This is your own invite — send it to your family member', ALREADY_LINKED: 'You are already connected',
+  NOT_FOUND: 'This invite link is not valid', USED: 'This invite has already been used', EXPIRED: 'This invite has expired. Ask for a new one',
+  OWN_INVITE: 'This is your own invite. Send it to your family member', ALREADY_LINKED: 'You are already connected',
   BAD_EMAIL: 'That doesn’t look like an email address', FAMILY_INVITE_LIMIT: 'You can invite up to 5 family members by email',
-  TOO_MANY_INVITES: 'Too many open invites — cancel some first', ONLY_OWNER: 'Only the person taking the medicines can change this',
+  TOO_MANY_INVITES: 'Too many open invites. Cancel some first', ONLY_OWNER: 'Only the person taking the medicines can change this',
 };
 const friendly = (msg: string) => {
   const code = Object.keys(MESSAGES).find(k => msg.includes(k));
   if (code) return t(MESSAGES[code]);
   if (/care_|function|relation/.test(msg)) return t('Family needs a one-time database update first');
-  return t('Something went wrong — check your connection');
+  return t('Something went wrong. Check your connection');
 };
 const fail = (e: { message: string } | null) => { if (e) throw new Error(friendly(e.message)); };
 
 export const joinUrl = (code: string) => `${APP_URL}/family/join/${code}`;
 export const familyInviteMessage = (code: string, role: 'owner' | 'carer', myName: string) => (role === 'owner'
-  ? t('{name} would like you to keep an eye on their medicines in Daily Assistant 💊', { name: myName })
-  : t("{name} would like to follow your medicines in Daily Assistant, so they know you're okay 💊", { name: myName }))
-  + `\n\n${t('Tap to accept:')} ${joinUrl(code)}\n\n(${t('New to the app? Install steps:')} ${APP_URL}/about)`;
+  ? t('{name} would like you to keep an eye on their medicines in Daily Assistant.', { name: myName })
+  : t("{name} would like to follow your medicines in Daily Assistant, so they know you're okay.", { name: myName }))
+  + `\n\n${t('Tap to accept:')} ${joinUrl(code)}`
+  + `\n\n${t('New to the app? First add it to your Home Screen.')}\n${installStepsText()}`;
 
 export const family = {
   async people(): Promise<FamilyPerson[]> {
