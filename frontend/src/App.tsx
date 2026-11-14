@@ -159,7 +159,7 @@ export default function App() {
               borderRadius: '14px',
               padding: '12px 18px',
               fontSize: '14px',
-              fontFamily: "Poppins, 'Noto Sans Gujarati', sans-serif",
+              fontFamily: "Poppins, 'Gujarati', sans-serif",
               maxWidth: '340px',
             },
           }}

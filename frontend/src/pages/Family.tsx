@@ -9,7 +9,7 @@ import { useFamilyPeople, usePersonData, personDay, displayName } from '../lib/u
 import { confirmDialog } from '../components/ui/ConfirmDialog';
 import { SkeletonList, Skeleton } from '../components/ui/Skeleton';
 import { getCurrentTimeIST } from '../utils/dateHelpers';
-import { t as tr, locale } from '../lib/i18n';
+import { t as tr, locale, shortMonth} from '../lib/i18n';
 import Rich from '../components/ui/Rich';
 
 /** Family: people I follow (their day at a glance), people who follow me, and open invites. */
@@ -105,7 +105,7 @@ export default function Family() {
               <div key={i.id} className="flex items-center gap-3 px-4 py-3">
                 <span className="flex-1 min-w-0">
                   <span className="block text-sm text-gray-900 dark:text-white truncate">{i.invite_email || tr('Code {code}', { code: i.code })}</span>
-                  <span className="block text-xs text-gray-400">{i.role === 'owner' ? tr('Invited to follow you') : tr('You asked to follow them')} · {tr('expires {date}', { date: new Date(i.expires_at).toLocaleDateString(locale(), { day: 'numeric', month: 'short' }) })}</span>
+                  <span className="block text-xs text-gray-400">{i.role === 'owner' ? tr('Invited to follow you') : tr('You asked to follow them')} · {tr('expires {date}', { date: new Date(i.expires_at).toLocaleDateString(locale(), { day: 'numeric', month: shortMonth() }) })}</span>
                 </span>
                 <button onClick={() => share(i)} aria-label={tr('Send again')} className="btn-icon w-8 h-8"><Share2 size={14} /></button>
                 <button onClick={() => cancel(i)} aria-label={tr('Cancel invite')} className="btn-icon w-8 h-8 text-gray-400"><X size={15} /></button>

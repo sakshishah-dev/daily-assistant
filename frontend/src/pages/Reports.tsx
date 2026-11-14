@@ -6,7 +6,7 @@ import { weeklySummary } from '../utils/insights';
 import { getTodayIST, isExcused } from '../utils/dateHelpers';
 import { CATEGORIES } from '../utils/constants';
 import type { Category } from '../types';
-import { t, locale } from '../lib/i18n';
+import { t, locale, shortMonth} from '../lib/i18n';
 
 const RANGE_OPTIONS = [
   { key: 7,  label: t('7 Days')  },
@@ -85,8 +85,10 @@ export default function Reports({ embedded = false }: { embedded?: boolean }) {
 
   const fmtDate = (d: string) => {
     const dt = new Date(d + 'T00:00:00');
-    return dt.toLocaleDateString(locale(), { month: 'short', day: 'numeric' });
+    return dt.toLocaleDateString(locale(), { month: shortMonth(), day: 'numeric' });
   };
+  // Tiny chart labels: Hindi/Gujarati month names are long, so show just the date number there.
+  const chartDate = (d: string) => (shortMonth() === 'long' ? String(Number(d.slice(8))) : fmtDate(d));
 
   return (
     <div className={embedded ? '' : 'page pt-6'}>
@@ -168,7 +170,7 @@ export default function Reports({ embedded = false }: { embedded?: boolean }) {
           {dailyData.map((d, i) => (
             <div key={d.date} className="flex-1 text-center">
               {(range <= 7 || i === 0 || i === dailyData.length - 1 || i % 3 === 0) && (
-                <span className="text-[9px] text-gray-400">{fmtDate(d.date)}</span>
+                <span className="text-[9px] text-gray-400">{chartDate(d.date)}</span>
               )}
             </div>
           ))}

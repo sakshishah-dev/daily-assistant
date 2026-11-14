@@ -15,7 +15,7 @@ import { TodaySkeleton } from '../components/ui/Skeleton';
 import { celebrate } from '../components/ui/Celebration';
 import type { NotificationSlot, Reminder, TaskInstance } from '../types';
 import toast from 'react-hot-toast';
-import { t as tr, locale } from '../lib/i18n';
+import { t as tr, locale, shortMonth} from '../lib/i18n';
 
 type Group = { key: string; label: string; emoji: string; time: string; tasks: TaskInstance[] };
 
@@ -140,7 +140,7 @@ export default function Home() {
 
   const paused = isPausedOn(profile, today);
   const pausedLabel = profile.paused_until
-    ? new Date(profile.paused_until + 'T00:00:00').toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: 'short' }) : '';
+    ? new Date(profile.paused_until + 'T00:00:00').toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: shortMonth() }) : '';
   const sosMeds = reminders.filter(r => r.isActive && isAsNeeded(r));
   const tookOne = (r: Reminder) => {
     const id = logSos(r);
@@ -241,7 +241,7 @@ export default function Home() {
 
       {/* Holiday mode */}
       {paused && (
-        <div className="mt-4 mb-1 rounded-2xl px-4 py-3 border bg-saffron-500/10 border-saffron-400/40 flex items-center gap-3">
+        <div className="mt-4 mb-14 rounded-2xl px-4 py-3 border bg-saffron-500/10 border-saffron-400/40 flex items-center gap-3">
           <span className="text-xl" aria-hidden="true">🌴</span>
           <span className="flex-1 min-w-0">
             <span className="block text-sm font-semibold text-gray-900 dark:text-white">{tr('Holiday mode')}</span>

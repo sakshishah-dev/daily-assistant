@@ -18,7 +18,7 @@ import HolidayCard from '../components/HolidayCard';
 import { Skeleton } from '../components/ui/Skeleton';
 import type { Theme, NotificationSlot } from '../types';
 import toast from 'react-hot-toast';
-import { t, locale } from '../lib/i18n';
+import { t, locale, shortMonth, timeOf} from '../lib/i18n';
 import Rich from '../components/ui/Rich';
 import { LanguageCard } from '../components/LanguageChooser';
 
@@ -165,7 +165,7 @@ export default function Settings() {
                 </div>
                 <input
                   type="time"
-                  className="input input-center w-[8.5rem] flex-shrink-0"
+                  className="input input-center w-[9.75rem] flex-shrink-0"
                   value={settings.notificationSlotTimes[slot]}
                   onChange={e => updateSlotTime(slot, e.target.value)}
                 />
@@ -411,7 +411,7 @@ export default function Settings() {
       <div className="text-center pb-2">
         <p className="text-xs text-gray-400 dark:text-gray-500">{t('Daily Assistant · invite-only beta')}</p>
         <p className="text-[11px] text-gray-300 dark:text-gray-600 mt-0.5">
-          {t('Version')} {new Date(__BUILD_TIME__).toLocaleString(locale(), { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })} · {__COMMIT__}
+          {t('Version')} {`${new Date(__BUILD_TIME__).toLocaleDateString(locale(), { timeZone: 'Asia/Kolkata', day: 'numeric', month: shortMonth() })}, ${timeOf(new Date(__BUILD_TIME__), 'Asia/Kolkata')}`} · {__COMMIT__}
         </p>
       </div>
     </div>

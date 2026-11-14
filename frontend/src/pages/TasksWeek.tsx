@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight, Check, X, Loader2, RefreshCw } from 'lucide-react';
 import { Skeleton } from '../components/ui/Skeleton';
 import { tasksApi, type WeekTasksResponse } from '../lib/tasks';
-import { t as tr, locale } from '../lib/i18n';
+import { t as tr, locale, shortMonth} from '../lib/i18n';
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => tr(d));
 
@@ -14,7 +14,7 @@ function shiftDate(date: string, days: number): string {
 }
 
 const fmtShort = (d: string) =>
-  new Date(`${d}T00:00:00`).toLocaleDateString(locale(), { day: 'numeric', month: 'short' });
+  new Date(`${d}T00:00:00`).toLocaleDateString(locale(), { day: 'numeric', month: shortMonth() });
 
 export default function TasksWeek() {
   const [start, setStart] = useState<string | undefined>(undefined); // undefined = this week
