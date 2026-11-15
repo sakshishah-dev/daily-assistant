@@ -1,5 +1,4 @@
-import type { Reminder, AppSettings } from '../types';
-import { DEFAULT_SETTINGS } from '../utils/constants';
+import type { Reminder } from '../types';
 
 const now = new Date().toISOString();
 
@@ -91,5 +90,3 @@ export const LEGACY_DEFAULT_REMINDERS: Reminder[] = [
     createdAt: now,
   },
 ];
-
-export const LEGACY_DEFAULT_SETTINGS: AppSettings = DEFAULT_SETTINGS;

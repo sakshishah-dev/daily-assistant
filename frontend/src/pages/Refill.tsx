@@ -108,7 +108,7 @@ export default function Refill() {
         {t('Counted wrong?')} <Link to={`/reminders/edit/${r.id}`} className="text-brand-600 dark:text-brand-400 font-medium">{t('Set the exact amount')}</Link>
       </p>
 
-      <div className="sticky bottom-0 -mx-4 px-4 pt-3 mt-2 bg-cream dark:bg-[#0E0E10]"
+      <div className="save-bar"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
         <button onClick={save} className="btn-primary w-full">{t('Save refill')}</button>
       </div>

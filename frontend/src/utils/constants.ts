@@ -20,17 +20,7 @@ export const NOTIFICATION_SLOTS: Record<NotificationSlot, { label: string; icon:
 
 export const SLOT_ORDER: NotificationSlot[] = ['morning', 'afternoon', 'after_dinner', 'overall'];
 
-export const REPEAT_OPTIONS = [
-  { value: 'daily',    label: t('Every day')          },
-  { value: 'weekdays', label: t('Weekdays (Mon-Fri)')  },
-  { value: 'weekly',   label: t('Specific day(s) each week') },
-  { value: 'monthly',  label: t('Specific date(s) each month') },
-  { value: 'once',     label: t('One time only')       },
-] as const;
-
 export const DAYS_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => t(d));
-export const DAYS_FULL  = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(d => t(d));
-
 export const DEFAULT_SETTINGS = {
   timezone: TIMEZONE,
   theme: 'system' as const,

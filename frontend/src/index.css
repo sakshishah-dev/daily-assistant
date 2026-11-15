@@ -63,6 +63,13 @@
     -webkit-mask-image: linear-gradient(to right, transparent 0, #000 16px, #000 calc(100% - 24px), transparent 100%);
             mask-image: linear-gradient(to right, transparent 0, #000 16px, #000 calc(100% - 24px), transparent 100%);
   }
+  /* Save bar at the bottom of a form: sticks to the bottom of the scrolling page (above the tab bar when it is shown), solid, with a divider
+     on top so it never looks like a floating box, and safe-area padding. */
+  .save-bar {
+    @apply sticky bottom-0 z-10 -mx-4 px-4 pt-3 mt-2 bg-cream dark:bg-[#0E0E10] border-t border-gray-200 dark:border-[#2C2C2E];
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  }
+
   /* Header row of every sub-page: back button + title */
   .page-header { @apply flex items-center gap-3 mb-5; }
 
@@ -96,8 +103,6 @@
   .btn { @apply inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all duration-150 active:scale-95; }
   .btn-primary { @apply btn bg-brand-600 text-white px-5 py-3 text-sm shadow-md shadow-brand-200 dark:shadow-none hover:bg-brand-700; }
   .btn-secondary { @apply btn bg-gray-100 dark:bg-[#2C2C2E] text-gray-700 dark:text-gray-300 px-5 py-3 text-sm hover:bg-gray-200 dark:hover:bg-[#333336]; }
-  .btn-danger { @apply btn bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-4 py-2.5 text-sm; }
-  .btn-ghost { @apply btn text-brand-600 dark:text-brand-400 px-3 py-2 text-sm hover:bg-brand-50 dark:hover:bg-white/[0.06]; }
   .btn-icon { @apply btn w-9 h-9 rounded-xl bg-gray-100 dark:bg-[#2C2C2E] text-gray-500 dark:text-gray-400; }
 
   /* ── Form ── */

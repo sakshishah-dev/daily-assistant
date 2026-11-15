@@ -3,7 +3,9 @@
 Do these steps **in this order**. Total time: about 20–30 minutes.
 Nothing here costs money. Supabase menu names can shift slightly over time - look for the closest match.
 
-> ⚠️ Do steps 1–5 **before** merging the code (step 6). The new app needs the new database tables.
+Important: do steps 1-5 **before** merging the code (step 6). The app needs the new database tables.
+
+How it is built now: the app and its server code (reminder sending, Send Test, Delete account) both run on **Vercel**; a **Supabase pg_cron** job calls the server every minute. There is no separate server to set up.
 
 ---
 
@@ -66,21 +68,22 @@ Also check **Authentication → Sign In / Providers → Email**:
    ```
    Emails must be **lowercase**.
 
-## Step 5 - Vercel: add the two new public settings
+## Step 5 - Vercel: add the settings
 
 1. Supabase → **Project Settings (gear) → API Keys**. Copy:
    - **Project URL** - `https://iiyeyisdmafernjjxkzu.supabase.co`
-   - the **Publishable key** (`sb_publishable_…`). ⚠️ **Not** a Secret key (`sb_secret_…`).
+   - the **Publishable key** (`sb_publishable_…`). Not the Secret key (`sb_secret_…`) here.
      (Older projects show a legacy "anon public" key instead - that also works, but legacy keys retire in 2027.)
 2. Vercel → `daily-assistant` project → **Settings → Environment Variables** → add:
    - `VITE_SUPABASE_URL` = the Project URL
    - `VITE_SUPABASE_ANON_KEY` = the publishable key (the variable name is just a label)
-3. Railway: check `FRONTEND_URL` is exactly `https://daily-assistant-eta.vercel.app`. Nothing else changes on Railway.
+3. Server-only settings (not starting with VITE_, never shown in the browser): `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` (the **Secret** key `sb_secret_…`), `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_EMAIL`, `CRON_SECRET`, and for feedback emails `SMTP_USER`, `SMTP_PASS`, `FEEDBACK_EMAIL_TO`.
+4. Turn on the every-minute reminder job: follow the steps in `docs/MOVE-OFF-RAILWAY.md` (two SQL files in `backend/supabase/migrations/`: cron-1 creates the secret, cron-2 schedules the job).
 
 ## Step 6 - Merge the code
 
-Merge the pull request into `main`. Vercel and Railway redeploy automatically (~2 min).
-Check `https://daily-assistant-production.up.railway.app/health` says `ok`.
+Merge the pull request into `main`. Vercel redeploys automatically (about 2 minutes).
+Open `https://daily-assistant-eta.vercel.app/api/health` and check every item says ok.
 
 ## Step 7 - First login on your iPhone
 
