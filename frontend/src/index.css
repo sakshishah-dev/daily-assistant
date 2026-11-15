@@ -41,12 +41,20 @@
 }
 
 @layer components {
+  /* The signed-in app is a fixed frame: the PAGE scrolls inside .app-scroll and the tab bar sits below it, outside the scrolling area.
+     So the tab bar can never move or float, and iPhone rubber-band scrolling never shows the background under it. */
+  html.shell-locked, html.shell-locked body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+  html.shell-locked body { position: fixed; inset: 0; width: 100%; }
   .app-shell {
-    @apply max-w-[480px] mx-auto relative;
-    min-height: 100vh;
-    min-height: 100dvh;  /* includes the bottom padding (border-box) → short pages don't scroll */
-    padding-bottom: calc(68px + env(safe-area-inset-bottom, 12px));
+    position: fixed; top: 0; bottom: 0; left: 0; right: 0; width: 100%; max-width: 480px; margin: 0 auto;
+    display: flex; flex-direction: column; overflow: hidden;
+    @apply bg-cream dark:bg-[#0E0E10];
   }
+  .app-scroll {
+    flex: 1 1 auto; min-height: 0; position: relative;
+    overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
+  }
+  .app-scroll .min-h-screen { min-height: 100%; }
 
   /* Horizontal chip rows: fade the edges so cut-off chips look intentional */
   .scrollbar-none { scrollbar-width: none; }
@@ -55,9 +63,6 @@
     -webkit-mask-image: linear-gradient(to right, transparent 0, #000 16px, #000 calc(100% - 24px), transparent 100%);
             mask-image: linear-gradient(to right, transparent 0, #000 16px, #000 calc(100% - 24px), transparent 100%);
   }
-  /* Full-screen forms hide the tab bar, so they don't need the space reserved for it */
-  .app-shell.no-tabbar { padding-bottom: 0; }
-
   /* Header row of every sub-page: back button + title */
   .page-header { @apply flex items-center gap-3 mb-5; }
 
@@ -68,12 +73,10 @@
 
   /* ── Bottom Navigation ── */
   .bottom-nav {
-    @apply fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto;
-    @apply flex justify-around items-center;
-    /* Solid colour and no blur: blurred fixed bars jump around during iPhone momentum scrolling and let the page show through */
+    @apply flex justify-around items-center flex-shrink-0 w-full;
+    /* Solid colour, outside the scrolling area */
     @apply bg-white dark:bg-[#161618];
     @apply border-t border-gray-100 dark:border-[#2C2C2E] z-50;
-    transform: translate3d(0, 0, 0); -webkit-transform: translate3d(0, 0, 0); will-change: transform;
     height: calc(60px + env(safe-area-inset-bottom, 0px));
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
@@ -147,6 +150,8 @@
 /* Doctor report printing: only the report, on white. */
 @media print {
   .bottom-nav, [data-sonner-toaster], .print\:hidden { display: none !important; }
+  /* the fixed app frame must not clip the report: let it flow onto as many pages as needed */
+  html.shell-locked, html.shell-locked body, .app-shell, .app-scroll { position: static !important; display: block !important; height: auto !important; overflow: visible !important; max-width: none !important; }
   html, body { background: #fff !important; color: #111 !important; }
   .page { padding: 0 !important; max-width: none !important; }
   .dark body { background: #fff !important; }

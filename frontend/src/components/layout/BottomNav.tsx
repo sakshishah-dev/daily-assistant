@@ -10,7 +10,7 @@ const NAV = [
 ];
 
 // Full-screen forms hide the tab bar so the Save button is never covered.
-export const HIDE_ON = [/^\/reminders\/(add|edit)/, /^\/routines\/(add|edit)/, /^\/tasks\/manage/, /^\/feedback/, /^\/checkin\//];
+export const HIDE_ON = [/^\/reminders\/(add|edit)/, /^\/routines\/(add|edit)/, /^\/routines\/(add|edit)/, /^\/tasks\/manage/, /^\/feedback/, /^\/checkin\//];
 
 /** True on screens that hide the tab bar (forms, check-in). */
 export const isTabBarHidden = (pathname: string) => HIDE_ON.some(r => r.test(pathname));
