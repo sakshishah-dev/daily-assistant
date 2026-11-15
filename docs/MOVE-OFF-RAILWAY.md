@@ -1,3 +1,5 @@
+> History only: this move is finished and Railway is retired. Kept as a record and for the cron setup steps (cron-1 and cron-2 SQL).
+
 # Moving the backend off Railway (₹0)
 
 **Status: DONE 9 Nov 2026.** **Before:** Railway ran an always-on Node server (every-minute reminders, Send Test, Delete account) - trial ends ~5 Dec.

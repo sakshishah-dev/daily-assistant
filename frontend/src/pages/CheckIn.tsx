@@ -174,7 +174,7 @@ export default function CheckIn() {
         </div>
       )}
 
-      <div className="sticky bottom-0 -mx-4 px-4 pt-3 bg-cream dark:bg-[#0E0E10]"
+      <div className="save-bar"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
         <button onClick={submit} className="btn-primary w-full py-3.5 text-[15px]">
           <Check size={18} strokeWidth={3} /> {tr('Submit {slot}', { slot: label })}

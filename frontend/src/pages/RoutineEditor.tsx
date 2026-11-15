@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import { ArrowLeft, ChevronUp, ChevronDown, Trash2, Plus, Edit2, Power, PowerOff } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -71,6 +71,23 @@ function RoutineForm({ routine }: { routine?: Routine }) {
   const [editing, setEditing] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  // The item form sits below the list: when it opens (new item or the pencil on a row) it is scrolled into view and focused.
+  const draftRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLTextAreaElement>(null);
+  const [focusTick, setFocusTick] = useState(0);
+  useEffect(() => {
+    if (!focusTick) return;
+    const id = requestAnimationFrame(() => {
+      draftRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      titleRef.current?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [focusTick]);
+  // Long names wrap onto more lines instead of scrolling sideways: the field grows with its text.
+  useEffect(() => {
+    const el = titleRef.current;
+    if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 2 + 'px'; }
+  }, [draft?.title, draft?.key]);
 
   const existingById = new Map(reminders.map(r => [r.id, r]));
 
@@ -87,8 +104,8 @@ function RoutineForm({ routine }: { routine?: Routine }) {
     setItems(next);
   };
 
-  const startAdd = () => { setDraft(blankItem()); setEditing(null); setErrors(e => ({ ...e, items: '', item: '' })); };
-  const startEdit = (it: Item) => { setDraft({ ...it }); setEditing(it.key); setErrors(e => ({ ...e, item: '' })); };
+  const startAdd = () => { setDraft(blankItem()); setEditing(null); setErrors(e => ({ ...e, items: '', item: '' })); setFocusTick(n => n + 1); };
+  const startEdit = (it: Item) => { setDraft({ ...it }); setEditing(it.key); setErrors(e => ({ ...e, item: '' })); setFocusTick(n => n + 1); };
   const closeDraft = () => { setDraft(null); setEditing(null); setErrors(e => ({ ...e, item: '' })); };
 
   /** Put the item form into the list. Returns the new list, or null when the name is missing. */
@@ -104,7 +121,7 @@ function RoutineForm({ routine }: { routine?: Routine }) {
     if (!next) { setErrors(e => ({ ...e, item: tr('Please enter the item name') })); return; }
     setItems(next);
     setErrors(e => ({ ...e, items: '', item: '' }));
-    if (editing) closeDraft(); else { setDraft(blankItem()); setEditing(null); }   // ready for the next item
+    if (editing) closeDraft(); else { setDraft(blankItem()); setEditing(null); setFocusTick(n => n + 1); }   // ready for the next item
   };
 
   /** Validate and save every item of the routine in one go. Returns the saved members, or null if something is missing. */
@@ -262,16 +279,16 @@ function RoutineForm({ routine }: { routine?: Routine }) {
               const meta = it.category === 'medicine'
                 ? doseMeta({ category: 'medicine', medicine: { dosage: it.dosage || undefined, mealRelation: it.meal } } as Reminder) : '';
               return (
-                <div key={it.key} className={`flex items-center gap-2 px-3 py-2.5 ${editing === it.key ? 'bg-brand-50 dark:bg-white/[0.04]' : ''}`}>
+                <div key={it.key} className={`flex items-start gap-2 px-3 py-2.5 ${editing === it.key ? 'bg-brand-50 dark:bg-white/[0.04]' : ''}`}>
                   <div className="flex flex-col flex-shrink-0">
                     <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="p-0.5 text-gray-400 disabled:opacity-20" aria-label={tr('Move up')}><ChevronUp size={16} /></button>
                     <button type="button" onClick={() => move(i, 1)} disabled={i === items.length - 1} className="p-0.5 text-gray-400 disabled:opacity-20" aria-label={tr('Move down')}><ChevronDown size={16} /></button>
                   </div>
-                  <span className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: cat.bg, color: cat.color }}>
+                  <span className="w-8 h-8 mt-1 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: cat.bg, color: cat.color }}>
                     <CategoryIcon category={it.category} size={16} />
                   </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 dark:text-gray-100 break-words">{it.title}</p>
+                  <div className="flex-1 min-w-0 pt-1.5">
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-100 break-words [overflow-wrap:anywhere]">{it.title}</p>
                     <p className="text-xs text-gray-400 truncate">{meta || cat.label}</p>
                     {it.category === 'medicine' && it.id && (
                       <button type="button" onClick={() => openMedicine(it)} className="text-[11px] font-semibold text-brand-600 dark:text-brand-400 mt-0.5 text-left">
@@ -289,12 +306,13 @@ function RoutineForm({ routine }: { routine?: Routine }) {
         )}
 
         {draft ? (
-          <div className="card p-3 space-y-3">
+          <div ref={draftRef} className="card p-3 space-y-3 scroll-mt-6">
             <div>
               <label className="text-[11px] text-gray-400 mb-1 block" htmlFor="item-title">{editing ? tr('Change item') : tr('New item')}</label>
-              <input id="item-title" className={`input ${errors.item ? 'border-red-400 dark:border-red-500' : ''}`} placeholder={tr('e.g. Drink hot water')}
+              <textarea id="item-title" ref={titleRef} rows={1} enterKeyHint="done"
+                className={`input resize-none overflow-hidden leading-snug ${errors.item ? 'border-red-400 dark:border-red-500' : ''}`} placeholder={tr('e.g. Drink hot water')}
                 value={draft.title} maxLength={80}
-                onChange={e => { setDraft({ ...draft, title: e.target.value }); setErrors(er => ({ ...er, item: '', items: '' })); }}
+                onChange={e => { setDraft({ ...draft, title: e.target.value.replace(/\s*[\r\n]+\s*/g, ' ') }); setErrors(er => ({ ...er, item: '', items: '' })); }}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); saveItem(); } }} />
               {errors.item && <p className="text-xs text-red-500 mt-1.5">{errors.item}</p>}
             </div>
@@ -370,8 +388,7 @@ function RoutineForm({ routine }: { routine?: Routine }) {
         </div>
       )}
 
-      <div className="sticky bottom-0 -mx-4 px-4 pt-3 mt-2 bg-cream dark:bg-[#0E0E10]"
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
+      <div className="save-bar">
         <button onClick={handleSave} disabled={saving} className="btn-primary w-full disabled:opacity-60">
           {isEdit ? tr('Save routine') : tr('Add routine')}
         </button>

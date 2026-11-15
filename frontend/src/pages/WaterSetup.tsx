@@ -96,7 +96,7 @@ export default function WaterSetup() {
       )}
       <p className="text-xs text-gray-400 text-center mb-4">{t("Water doesn't count in your medicine score.")}</p>
 
-      <div className="sticky bottom-0 -mx-4 px-4 pt-3 mt-2 bg-cream dark:bg-[#0E0E10] space-y-2"
+      <div className="save-bar space-y-2"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
         <button onClick={save} disabled={!valid} className="btn-primary w-full disabled:opacity-50">
           {isOn ? t('Save changes') : t('Start water reminders')}

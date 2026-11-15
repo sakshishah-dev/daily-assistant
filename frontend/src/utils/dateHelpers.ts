@@ -1,8 +1,6 @@
 import { TIMEZONE } from './constants';
-import type { TaskInstance, DashboardStats } from '../types';
+import type { TaskInstance } from '../types';
 import { t, locale, shortMonth} from '../lib/i18n';
-
-type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
 
 export function getTodayIST(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: TIMEZONE });
@@ -29,14 +27,6 @@ export function getGreeting(): string {
   return t('Good Night');
 }
 
-export function getTimeOfDay(timeStr: string): TimeOfDay {
-  const h = parseInt(timeStr.split(':')[0]);
-  if (h >= 5  && h < 11) return 'morning';
-  if (h >= 11 && h < 17) return 'afternoon';
-  if (h >= 17 && h < 21) return 'evening';
-  return 'night';
-}
-
 export function formatTime(timeStr: string): string {
   const [h, m] = timeStr.split(':').map(Number);
   const ampm = h >= 12 ? 'PM' : 'AM';
@@ -49,31 +39,11 @@ export function formatDate(dateStr: string): string {
   });
 }
 
-export function formatDateShort(dateStr: string): string {
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString(locale(), {
-    weekday: 'short', month: shortMonth(), day: 'numeric',
-  });
-}
-
-export function getTodayFormatted(): string {
-  return formatDate(getTodayIST());
-}
-
 /** Reason stored when an item is left unticked at a check-in. */
 export const MISSED = 'missed';
 export const isMissed  = (t: TaskInstance) => t.status === 'skipped' && t.skippedReason === MISSED;
 /** Deliberately skipped (not counted against you). Missed items DO count as not done. */
 export const isExcused = (t: TaskInstance) => t.status === 'skipped' && t.skippedReason !== MISSED;
-
-export function getDashboardStats(tasks: TaskInstance[]): DashboardStats {
-  const total     = tasks.length;
-  const completed = tasks.filter(t => t.status === 'completed').length;
-  const pending   = tasks.filter(t => t.status === 'pending').length;
-  const skipped   = tasks.filter(isExcused).length;
-  const denom     = total - skipped;
-  const percentage = denom > 0 ? Math.round((completed / denom) * 100) : 0;
-  return { total, completed, pending, skipped, percentage };
-}
 
 export function shouldReminderRunToday(
   reminder: { repeat: string; date?: string; repeatDays?: number[]; medicine?: { startDate?: string; endDate?: string } },

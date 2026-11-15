@@ -41,10 +41,6 @@ export function tIn(lang: Lang, text: string, vars?: Record<string, string | num
   return s;
 }
 
-/** Plural-ish helper: picks the singular text when n === 1. */
-export const tn = (n: number, one: string, many: string, vars: Record<string, string | number> = {}) =>
-  t(n === 1 ? one : many, { n, ...vars });
-
 /** Locale for dates and times (Indian formats, in the chosen language). */
 export const localeFor = (l: Lang) => (l === 'hi' ? 'hi-IN' : l === 'gu' ? 'gu-IN' : 'en-IN');
 export const locale = () => localeFor(current);

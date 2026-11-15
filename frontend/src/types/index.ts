@@ -1,6 +1,5 @@
 export type Category = 'medicine' | 'habit' | 'routine' | 'task';
 export type RepeatType = 'daily' | 'weekdays' | 'weekly' | 'monthly' | 'custom' | 'once';
-export type Priority = 'low' | 'medium' | 'high';
 export type TaskStatus = 'pending' | 'completed' | 'skipped';
 export type MealRelation = 'before' | 'after' | 'with' | 'independent';
 export type Theme = 'light' | 'dark' | 'system';
@@ -79,14 +78,6 @@ export interface AppSettings {
   theme: Theme;
   notificationSlotTimes: NotificationSlotTimes;
   pushNotificationsEnabled: boolean;
-}
-
-export interface DashboardStats {
-  total: number;
-  completed: number;
-  pending: number;
-  skipped: number;
-  percentage: number;
 }
 
 export interface Profile {

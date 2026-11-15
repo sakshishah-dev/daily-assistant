@@ -1,454 +1,89 @@
-# Daily Assistant — Project Brief for Claude
+# Daily Assistant - Project Brief for Claude
 
-## What this is
-A personal PWA (Progressive Web App) — medicine reminder + habit tracker + routine monitor.
-Installable on iPhone 17 via Safari → Share → Add to Home Screen.
-Built for Sakshi (sakshi@gearedfinance.com.au).
+PWA: medicine reminders + habit tracker + routines, built for Sakshi (sakshi@gearedfinance.com.au), installed on iPhone via Safari > Share > Add to Home Screen.
+Roadmap: Sakshi only (now) > 10-20 friends/family > ~100 people > public. Free tiers only (cost 0 INR; a domain ~1,000 INR/yr is the only acceptable spend), India only (timezone stored per user, default Asia/Kolkata), stays a PWA, no ads/trackers. New feature ideas go to Sakshi to decide; build foundations before features.
 
-## How to work with Sakshi (her preference — always follow)
-- Sakshi is new to this. When a task needs actions from her (dashboards, settings, accounts):
-  1. First give a short overview: **why** it's needed and the **list of all steps** (one line each).
-  2. Then give **only Step 1** in detail (exact clicks, what she should see).
-  3. Wait for her to report back (screenshot/result), then give the next step based on what happened.
-- Never ask her to paste secrets (passwords, service_role key, app passwords) into chat.
-- Keep language simple; explain unfamiliar terms briefly.
+## How to work with Sakshi (always follow)
+- She is new to this. When a task needs her action (dashboards, settings, SQL): first a short overview (why + one line per step), then ONLY Step 1 in detail (exact clicks, what she should see), then wait for her reply and give the next step.
+- Never ask her to paste secrets (passwords, service_role key, app passwords).
+- Simple language; explain unfamiliar terms briefly.
+- Git: start from latest origin/main on a new branch, never force-push, commit, push, open a PR to main, ask her to merge. After a SQL migration is needed, give the steps as above. If there is no GitHub access in the session, give her a prefilled compare link (`.../compare/main...<branch>?quick_pull=1&title=...&body=...`).
 
-## Security rules — never break these
-- Never expose secret API keys in frontend code
-- Medicine and personal routine info must stay private
-- Use secure authentication and database permissions
-- The app must NOT recommend medicines, change doses, or make medical decisions — only remind per the schedule entered
-
-## Medicine schedule (Sakshi's — no longer pre-loaded)
-- Iron Syrup: 10ml, twice daily (morning after meal + after dinner)
-- Vitamin D3: 60,000 IU, every Thursday morning
-- Vitamin B12: 1 tablet, daily morning after meal
-- Since Phase 6 new users start EMPTY. Sakshi's schedule lives in her account; `data/initialData.ts`
-  (`LEGACY_DEFAULT_REMINDERS`) exists only to import pre-account data from her phone.
+## Rules (never break)
+- Security: no secret keys in frontend code; medicine and routine data stay private; RLS on every user table. Frontend gets ONLY the publishable key, backend ONLY the secret key.
+- Medicine safety: the app never recommends medicines or doses or makes medical decisions; it only reminds per the schedule the user entered. Templates set the pattern only, never a name or dose.
+- Tone: NO emojis and NO em dashes anywhere (app, notifications, messages, docs, code strings). Use `.` `:` `,` `-` `;`. Icons are lucide-react line icons (`CategoryIcon`, `NOTIFICATION_SLOTS[slot].icon`).
+- Languages (English / Hindi / Gujarati): `lib/i18n.ts`, English text is the key: `t('Text {n}', {n})`. Every new user-facing string uses t() and needs entries in `locales/hi.ts` + `locales/gu.ts` (keep `{placeholders}` and `**bold**`; target 0 missing and 0 unused keys; a scan = collect t('...') literals and compare to dictionary keys). Server notification strings go in `api/_lib/i18n.js` (`tr(lang, ...)`, pass `lang` to every builder; family alerts use the FOLLOWER's language). `t` clashes with callback params named `t`: import as `tr`. Never translate medicine names or user text (including routine names). Times use `timeOf()`, dates in sentences use `month: shortMonth()` (full month name in hi/gu); never call toLocaleString/toLocaleTimeString directly. Hindi/Gujarati need extra line-height (index.css) and Noto Sans Gujarati (size-adjust 116%); check layout in both. The doctor report has its own language (`tIn`, `da_report_lang`). Chosen on first open (LanguageChooser, skipped when `navigator.webdriver`), changed in Settings; stored in localStorage `da_lang` and `profiles.language`.
+- Feature guide: every new feature adds an entry to `frontend/src/data/features.ts` (title, what, where, check, added). `/guide` is public.
+- Demo mode: any new server call must handle `isDemo()` (lib/demo.ts).
+- Loading states: never show an empty/"nothing here" screen while data is arriving. AppContext `fresh` = server data loaded (or failed); screens use skeletons (`components/ui/Skeleton.tsx`) until then; check-in, refill, edit and report wait for `fresh`.
+- Layout: the signed-in app is a FIXED FRAME (`.app-shell` fixed, `html.shell-locked`): the page scrolls inside `.app-scroll` and the tab bar (`.bottom-nav`, solid) sits BELOW it as a normal flex item, so it can never float and rubber-band scrolling never shows the background. Never use `window.scrollTo`/document scroll in the signed-in app (use `scrollIntoView` or scroll `.app-scroll`; it resets to top on route change in MainApp). Print CSS unlocks the frame. Logged-out pages (Login, About, Privacy) use normal document scroll. Sub-pages use `<div className="page pt-4">` + `<div className="page-header">` (back `btn-icon` with ArrowLeft 20 + `page-title`); tab pages use `page pt-6`. Forms hide the tab bar via `HIDE_ON` in BottomNav. Bottom save buttons use the shared `.save-bar` class (sticky bottom-0, solid, top divider, safe-area padding; sits above the tab bar automatically). Long user text must wrap (`break-words`), never scroll sideways or clip.
 
 ## Tech stack
-| Layer | Tech |
-|---|---|
-| Frontend | React 18 + TypeScript + Vite + Tailwind CSS |
-| PWA | vite-plugin-pwa (injectManifest strategy) + custom sw.ts |
-| Routing | React Router DOM v6 |
-| Backend | Vercel serverless functions in `frontend/api/*` (Node 22) — moved off Railway Nov 2026 |
-| Database | Supabase (PostgreSQL + RLS). Frontend uses anon key + RLS; backend uses service role |
-| Auth | Supabase Auth — 6-digit email OTP, invite-only (`allowed_emails`), SMTP via Gmail app password |
-| Push notifications | web-push + VAPID |
-| Scheduler | Supabase pg_cron + pg_net → POST /api/cron/tick every minute (Bearer CRON_SECRET from Vault) |
-| Frontend hosting | Vercel — https://daily-assistant-eta.vercel.app |
-| Backend hosting | Same Vercel project (same origin: /api/...). Railway retired 9 Nov 2026 |
+React 18 + TypeScript + Vite + Tailwind; vite-plugin-pwa (injectManifest, custom `sw.ts`); React Router v6; Supabase (Postgres + RLS + Auth: 6-digit email OTP, invite-only via `allowed_emails`, SMTP through a Gmail app password); backend = Vercel serverless functions in `frontend/api/*` (Node 22) on the same origin as the app; web-push + VAPID; scheduler = Supabase pg_cron + pg_net calling POST /api/cron/tick every minute (Bearer CRON_SECRET from Vault). Hosting free (Vercel + Supabase). Railway was retired 9 Nov 2026 (docs/MOVE-OFF-RAILWAY.md is history only).
 
 ## Project structure
 ```
-C:\Users\LPI73\daily-assistant\
-├── frontend/          React PWA
-│   ├── src/
-│   │   ├── components/ui/  ProgressRing, EmptyState, Celebration (celebrate('msg'))
-│   │   ├── pages/     Home(Today), Refill, WaterSetup, WaterAdd, Report, Invites, About, Setup, Guide, Family*, Tasks, TasksWeek, ManageTasks, Reminders, AddReminder, RoutineEditor, Progress(Reports+Calendar),
-│   │   │              Settings, Login, Welcome (onboarding), Privacy, Feedback
-│   │   ├── context/   AuthContext.tsx (session), AppContext.tsx (per-user data + sync engine)
-│   │   ├── hooks/     usePushNotifications.ts (multi-device, register_push_device RPC)
-│   │   ├── lib/       supabase.ts (anon client), sync.ts (row mapping, diff, legacy import),
-│   │   │              tasks.ts (daily checklist data), api.ts (backend: test push, delete account)
-│   │   ├── utils/     constants.ts, dateHelpers.ts, notifications.ts
-│   │   ├── types/     index.ts
-│   │   ├── data/      initialData.ts
-│   │   └── sw.ts      Custom service worker (push handler)
-│   ├── api/           Vercel functions: push/test, account/delete, cron/tick, health; _lib/ (scheduler,
-│   │                  scheduleLogic, supabaseAdmin, http) — server-only, uses SUPABASE_SERVICE_KEY etc.
-│   ├── scripts/dev-api.mjs  local stand-in for Vercel functions (vite proxies /api → :3001)
-│   ├── .env.example   VITE_VAPID_PUBLIC_KEY, VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY (all public)
-│   └── vercel.json    Vercel deployment config
-├── backend/supabase/   SQL: phase6-schema.sql (full schema) + migrations/ (follow-up, snooze, cron 1+2)
-├── backend/supabase-schema.sql  Phase 3 (old push_subscriptions table — unused, drop later)
-├── docs/SETUP-PHASE6.md  Step-by-step Supabase/Gmail/Vercel setup + invite admin
-├── docs/MOVE-OFF-RAILWAY.md  how the backend moved to Vercel + pg_cron (done)
-├── .gitignore
-└── CLAUDE.md          ← this file
+daily-assistant/
+  frontend/              React PWA (Vercel Root Directory)
+    src/pages/           Home(Today), Reminders, AddReminder, RoutineEditor, CheckIn, Refill, WaterSetup/WaterAdd, Tasks/TasksWeek/ManageTasks,
+                         Progress, Report, Settings, Setup, Guide, About, Invites, Family*, Login, Welcome, Privacy, Feedback
+    src/components/      ui/ (ProgressRing, EmptyState, Celebration, Skeleton, ConfirmDialog), RemindAgainField, WaterCard, FamilyTodayCard, ...
+    src/context/         AuthContext (session), AppContext (per-user data + sync engine)
+    src/lib/             supabase, sync (row mapping, diff, merge, upsertReminderRows), routines, snooze, demo, i18n, family, tasks, water, admin, api
+    src/utils/           constants, dateHelpers, schedule (stock/course/SOS), dose
+    src/data/            features.ts, initialData.ts (legacy import only)
+    api/                 Vercel functions: push/test, account/delete, cron/tick, health; _lib/ (scheduler, scheduleLogic, i18n, supabaseAdmin, http)
+    test/                schedule.test.ts (app logic), scheduleLogic.test.mjs (scheduler logic)
+    scripts/dev-api.mjs  local stand-in for the Vercel functions (vite proxies /api to :3001)
+  backend/supabase/      phase6-schema.sql (full idempotent schema) + migrations/
+  docs/                  SETUP-PHASE6.md (Supabase/Gmail/Vercel setup + admin), MOVE-OFF-RAILWAY.md (history + cron steps)
 ```
 
 ## Key design decisions
-- **4 notification slots** per day: morning, afternoon, after_dinner, overall (times configurable)
-- **Catch-up window** (scheduler): each tick checks now + the 5 minutes before (`recentTimes`, never across midnight),
-  so a late/skipped pg_cron tick still delivers. Claims stop doubles; at most one repeat per check-in per tick and none
-  on top of a first notification sent in the same tick; water sends only the latest due time. Older than 5 min → skipped.
-  Tests: npm run test:api + scratchpad scheduler scenarios (33 cases, Nov 2026 audit).
-- **Custom-time reminders** (`customTime`, no slots) are pushed by the scheduler too (dedupe key `custom:<reminderId>`)
-- **Routines** (16 Nov 2026; migration 2026-11-16-routines.sql): a named group with its OWN time and repeat days, ONE notification
-  and one check-in, e.g. "Morning routine 7:00 AM" = medicine + hot water + walk + protein shake + coffee. A routine is NOT a table:
-  it is a set of normal exact-time reminders (slots [], customTime = routine time, same repeat / isActive / remindAgain) that share
-  `routine_id` + `routine_name` (+ `routine_order` = position). Dose logs stay `<reminderId>__custom__<date>`, so scores, missed
-  logic, stock, doctor report, weekly summary and family sharing need no change. Only GROUPING differs, always by key
-  `routine-<routineId>`: Today group (lib/routines.ts `routinesOf`, `routineKey`), `/checkin/routine-<id>`, snooze key, scheduler
-  (`dueRoutines` / `routinePending` / `buildRoutineNotification|FollowUp|Snooze`; dedupe claim `routine:<id>`, tag `da-routine-<id>`,
-  repeats `again:routine-<id>:<offset>`, family alert `care:<link>:routine-<id>` listing only its medicines). `dueCustom` skips routine
-  items. Screens: `/routines/add`, `/routines/edit/:id` (pages/RoutineEditor.tsx: name, time, every day / weekdays / some days,
-  items with up/down arrows, remind again via components/RemindAgainField, pause, delete); Reminders tab has "Add routine" and shows
-  ONE card per routine (items are never listed one by one). Save replaces all members in one `setReminders` call. A medicine inside a
-  routine opens the normal edit form for "Refill alert and course"; there its time, days, SOS and remind-again are hidden (the routine
-  owns them) and AddReminder keeps the routine fields. Routines are for your own account only (family followers still see and manage
-  the medicines in them as single medicines). The routine NAME is the user's text: never passed through tr()/t().
-  If the migration has not been run, sync saves the rows without the routine columns (`upsertReminderRows` in lib/sync.ts, same idea
-  as remind_again) and snoozing a routine fails with the usual "Couldn't snooze" message (snoozes.key check).
-- **Check-in** (`/checkin/:slot`, `/checkin/custom-<id>` or `/checkin/routine-<routineId>`): notification tap opens it; ticked → completed, unticked →
-  `skipped` with `skippedReason: 'missed'` (counts as NOT done in stats; deliberate skips stay excused — see isExcused/isMissed)
-- **Remind me again** (alarm-style, per reminder): `reminders.remind_again = {every: 0|5|10|15|30, times: 1..3}`
-  (migration 2026-11-10-remind-again.sql). NULL → profile default `follow_up_minutes` (0/15/30/60) as ONE repeat.
-  Scheduler `repeatsDue()` groups due repeats per check-in key; dedupe `again:<key>:<offsetMin>`. Stops when done,
-  checked in, snoozed (future snooze row) or after a snooze fired (`nomore:<key>` claim). Settings card = default.
-  App sync retries without remind_again if the column is missing (migration not yet run).
-- **Feedback email**: every cron tick emails new `feedback` rows (last 2 days) to FEEDBACK_EMAIL_TO via Gmail SMTP
-  (nodemailer; SMTP_USER/SMTP_PASS = Gmail app password), once each (claim `feedback:<id>`), reply-to = tester.
-- **Water reminders**: own screen `/water` (Quick start 💧 chip + Settings card), NOT a normal reminder.
-  `profiles.water = {on, every 30|60|120|180, from, to, goal 1–20}`; glasses in `water_logs (user_id, date, glasses)`,
-  changed only via RPC `add_water(date, ±1)` (atomic, clamped 0–30). Scheduler sends at from+every … ≤ to
-  (dedupe `water:<HH:MM>`), skips once goal reached. Notification → `/water/add` (+1 glass → Today). Today WaterCard
-  (+ Glass / Undo). Not in the medicine score or badge. Migration 2026-11-10-water.sql.
-- **Fix past days** (Progress → Calendar): `dayInstances(date)` = what was scheduled that day (reminders created by then,
-  current slot times) + logged entries, so never-opened days can be fixed; Taken/Missed/Skipped per item (tap again =
-  clear) via `setDayStatus`; last 60 days, no future. Past "Taken" is stamped at the scheduled time (stock maths stays right).
-- **As-needed (SOS) medicines**: `medicine.asNeeded = true`, slots [] and no custom time → never scheduled or pushed.
-  Today "Only when needed" card → "Took one" logs a completed dose_log id `<rid>__sos__<date>__<stamp>` (Undo in toast).
-  `isSos()` keeps them out of todayTasks/dailyLogs/scores/weekly/report summary; `allLogs` (incl. SOS) feeds stock.
-  Stock for SOS: lowDays = doses left ("Only N left"), never days.
-- **Holiday mode**: `profiles.paused_until` (date, inclusive; migration 2026-11-11-holiday-mode.sql). Settings card
-  (3 days / 1 week / 2 weeks / date, max 60 days) + Today banner with Resume. buildDay makes nothing due while paused
-  (no pending → nothing missed); scheduler skips paused users entirely (incl. water, stock, weekly). Streak ignores
-  empty days and an unfinished today.
-- **Sunday summary**: Sunday at the user's `overall` (night) time, push "📊 Your week: N% done" + most-missed pattern
-  (`weeklySummary`: weekday+slot missed on ≥2 dates in 4 weeks, else slot missed ≥2 days this week). Missed = missed
-  check-in or pending on a past day; deliberate skips + SOS excluded. Dedupe `weekly:<date>`. Same card on Progress.
-- **Doctor report** `/report` (Progress → "Report for your doctor"): last 7/30/90 days, per-medicine taken/missed/%,
-  SOS doses with times, day-by-day log, disclaimer; optional habits. window.print() + print CSS (tab bar/buttons hidden);
-  made on the phone, nothing sent anywhere.
-- **Invites from the app** (owner only): `profiles.is_admin` (set by migration for Sakshi's 2 emails; NOT in the
-  column update grant, so users can't set it). Settings → "Invite people" (/invites): admin RPCs `admin_list_invites`,
-  `admin_invite(email, note)` (lower/trim, validated), `admin_remove_invite` (can't remove an admin; existing account
-  keeps working) — each checks `is_admin()` in the DB. WhatsApp / share-sheet message with the /about link.
-- **Public info page** `/about` (no login; linked from Login): what it is, iPhone/Android install steps, privacy promise.
-- **Setup guide** `/setup`: shown after Welcome (Continue) and from Settings / Today banner ("Reminders can't reach you
-  yet" while push is off): install → turn on notifications → send test. iPhone push needs the Home Screen app.
-- **Error tracking (₹0, no Sentry account)**: `lib/errorReport.ts` (window errors, promise rejections, ErrorBoundary
-  "Something went wrong" screen) → `client_errors` (insert-only own rows, max 10/session, network noise ignored, ids
-  stripped from page). Server `emailNewErrors` sends ONE grouped email per hour (minutes 0–4, gate claim
-  `errors:<hour>` + per-row `error:<id>`) to FEEDBACK_EMAIL_TO; rows deleted after 14 days.
-- **Loading states**: never show an empty/"nothing here" screen while data is arriving. AppContext `fresh` = server
-  data loaded (or load failed). Today/Reminders/Progress show skeletons (`components/ui/Skeleton.tsx`: Skeleton,
-  SkeletonList, TodaySkeleton, ProgressSkeleton, Splash with logo) until `fresh` when they have nothing cached;
-  Tasks/Week/Manage/Invites show SkeletonList while fetching; WaterCard pulses until the count is known.
-  Same rule for async checks: push status starts from this device's last known state (`da_push_last_v1`) and shows a
-  placeholder only when unknown (3 s cap if the service worker never starts); check-in, refill, edit-reminder and report
-  wait for `fresh` instead of flashing "Nothing to…"/a blank form; edit of a missing id → back to the list.
-- **Feature guide** `/guide` (public, linked from Settings + About): "What you can do", search, "I'm testing" mode
-  (shows what each should do), NEW badge for 14 days. **RULE: every new feature adds an entry to
-  `frontend/src/data/features.ts`** (title, what, where, check, added).
-- **Family** (migration 2026-11-14-family.sql): `care_links (owner_id = takes medicines, carer_id = follower, created_by,
-  code 8-char, status pending|active|ended, can_manage, alert_after 0|30|60|120, nickname, invite_email, expires 7 d)`.
-  Either side creates an invite (`care_create_invite(role, email?, nickname?, can_manage?)`; email → allowed_emails with
-  invited_by, max 5 per user); the other accepts (`care_invite_preview` / `care_accept`); `care_end`, `care_update`
-  (can_manage = owner only; alert/nickname = follower only); `care_people()` returns limited profile fields. RLS:
-  followers READ only `category='medicine'` reminders + dose_logs (`follows()`); `manages()` adds insert/update(/delete
-  reminders) for medicines. **Own-data queries must filter `.eq('user_id', uid)`** (AppContext does). Screens: /family,
-  /family/add, /family/join/:code (code remembered through login), /family/:linkId (today, 7 days, stock, alert
-  setting, tick + add/edit if can_manage), /family/:linkId/add|edit/:id (AddReminder via AppContext override,
-  `familyMode`), Today FamilyTodayCard, Settings card. Scheduler `checkFamily()`: "hasn't marked" push to follower at
-  dose time + alert_after (catch-up window, claim `care:<link>:<key>` on follower, skips holiday/ticked/deliberate skip;
-  works even if the owner has no push), low stock at owner's morning time (`care-stock:<link>:<rid>`).
-  Tests: scratchpad audit-family.sql (42), family-sched.mjs (10), family-ui.js (16).
-- **Demo mode** (for recruiters/visitors): "Try the demo" on Login, About and Guide → `lib/demo.ts` sets `da_demo_v1`,
-  seeds realistic sample data (Priya: medicines incl. course/SOS/stock, habits, 14 days of history with a Monday-morning
-  miss pattern, tasks, water, family: follows "Maa" with manage + followed by "Rohan") into localStorage `da_demo_*`.
-  AuthContext gives a pretend session; AppContext load/flush, tasks, water, snooze, family use the local stores; push,
-  feedback, invites, family invites and delete account are disabled with "not in the demo". Orange top bar + Exit demo
-  (wipes everything). Tested: zero requests reach the server during a demo. **Any new server call must handle isDemo().**
-- **Languages (English / हिन्दी / ગુજરાતી)**: `lib/i18n.ts` — the English text is the key: `t('Text {n}', {n})`, dictionaries in
-  `locales/hi.ts` + `locales/gu.ts` (generated; Hindi/Gujarati sentences must keep `{placeholders}` and `**bold**`).
-  Chosen on first open (`components/LanguageChooser`, skipped when `navigator.webdriver` so tests stay English), changed in
-  Settings (reloads the app); stored in localStorage `da_lang` AND `profiles.language` (migration 2026-11-15-language.sql) so the
-  server writes notifications in it (`api/_lib/i18n.js` + `lang` param on every builder in scheduleLogic; family alerts use the
-  FOLLOWER's language). Medicine names / user text are never translated. Doctor report has its own language (`tIn`, `da_report_lang`).
-  Gujarati font: Noto Sans Gujarati (own @font-face 'Gujarati', size-adjust 116% so it matches Poppins). Hindi/Gujarati need extra line-height
-  (CSS in index.css). Dates in sentences use `month: shortMonth()` (full month name in hi/gu — their abbreviations look odd) and times use
-  `timeOf()` (always "7:36 PM"); never call toLocaleString/toLocaleTimeString directly. Check layout with scratchpad lang-audit.js (all pages, hi + gu). **RULE: every new user-facing string uses t() and gets hi + gu entries** — add them to the
-  dictionaries (scratchpad tools: scan for untranslated text, extract keys → report missing; target = 0 missing). `t` clashes with
-  callback params named `t` → import as `tr`. Privacy text is translated but the English text prevails (stated on the page).
-- **Tone (Sakshi's rule)**: no em dashes (—) and no emojis anywhere in the app, messages, notifications, guide or docs. Use a plain
-  `.`, `:`, `,`, `-` or `;`; for icons use lucide-react line icons (`CategoryIcon`, `NOTIFICATION_SLOTS[slot].icon`). Hindi/Gujarati
-  dictionaries follow the same rule. WhatsApp invite messages (`inviteMessage`, `familyInviteMessage`) include exact iPhone + Android
-  "add to Home Screen" steps (`lib/installText.ts`).
-- **Layout conventions**: the signed-in app is a FIXED FRAME (`.app-shell` fixed, `html.shell-locked`): the page scrolls inside `.app-scroll` and the tab bar
-  (`.bottom-nav`, solid) sits BELOW it as a normal flex item, so it can never move/float and rubber-band scrolling never shows the background under it.
-  Never use `window.scrollTo`/document scroll in the signed-in app; scroll `.app-scroll` (reset to top on route change in MainApp). Print CSS unlocks the frame.
-  Public pages (logged out: Login, About, Privacy) still use normal document scroll. Sub-pages use `<div className="page pt-4">` + `<div className="page-header">`
-  (back `btn-icon` with ArrowLeft 20 + `page-title`); tab pages use `page pt-6`. Sticky save bars are solid `sticky bottom-0` (they sit above the tab bar automatically);
-  forms hide the tab bar via HIDE_ON in BottomNav.
-- **App-icon badge**: push payload `badge` (pending items whose time has come) → SW `setAppBadge`; app recomputes every minute
-- **App updates**: sw.ts calls skipWaiting + clientsClaim; main.tsx checks for updates on every open (visibilitychange)
-  and reloads once when a new version takes over. Settings shows build time + commit (`__BUILD_TIME__`, `__COMMIT__`).
-  (Before 9 Nov 2026 new versions waited until the iOS app was fully killed — testers could run old builds for days.)
-- **Quick-add templates** (AddReminder): medicine templates set the PATTERN only (once/twice daily, weekly, 5-day course)
-  — never a medicine name or dose (app must not recommend medicines/doses). Habit templates fill the name too.
-- **Course duration**: `medicine.startDate`/`endDate` (inclusive) in the reminders.medicine jsonb; honoured by
-  shouldReminderRunToday (frontend) and runsOn (scheduler). Reminders list shows "Day 3 of 5" / "Course finished".
-- **Stock**: `medicine.stock = {quantity, unit, perDose, refilledAt, lowDays}`. Remaining is DERIVED:
-  quantity − perDose × completed doses since refilledAt (undo/missed never count; multi-device safe).
-  Changing "You have now" on edit = new refill point. No alert if the course ends before stock runs out,
-  or if paused/finished. Today shows a banner; scheduler pushes EVERY day at the user's morning time while low/out
-  (key `stock:<id>`, one per date) until refilled. Refill screen `/refill/:id` (notification + banner + edit form link):
-  "how many did you add?" → quantity = remaining + added, refilledAt = now.
-- **Snooze** (check-in screen: 10/30/60 min): `snoozes` table (migration 2026-11-09-snooze.sql), one per user+key,
-  max 3 h, created_at set by DB trigger. Scheduler takes due rows with delete…returning, sends only if still pending,
-  and claims the follow-up key so no "still pending" arrives after a snooze. Future snoozes suppress follow-ups.
-- **No home-screen widgets**: iOS/Android only allow widgets for native store apps (would need Capacitor + WidgetKit, $99/yr)
-- **Twice-daily medicine**: single Reminder with `slots: ['morning', 'after_dinner']`
-- **Weekly**: `repeat: 'weekly'`, `repeatDays: [3]` (0=Mon…6=Sun, so 3=Thu)
-- **Monthly**: `repeat: 'monthly'`, `repeatDays: [1,15]` (day numbers)
-- **Accounts (Phase 6)**: Supabase Auth email OTP. Invite-only via `allowed_emails` + BEFORE INSERT trigger on auth.users.
-- **Data**: Supabase is source of truth. AppContext keeps `data` (UI) and `synced` (server copy); a debounced flush
-  upserts the diff; offline edits wait and retry. Cached per user in localStorage `da_cache_v3_<uid>` (cleared on logout).
-- **Security model**: frontend uses the **anon/public key**; every user table has RLS `user_id = auth.uid()`.
-  The **service-role key never leaves the backend**. Backend endpoints verify the Supabase JWT.
-- **Legacy keys** `da_reminders_v2`/`da_logs_v2`/`da_settings_v2`/`da_device_id`: imported on first login, then
-  archived to `da_legacy_backup_v2`. Old app kept default reminders in memory → import falls back to LEGACY_DEFAULT_REMINDERS.
-- **Timezone**: profile.timezone (default Asia/Kolkata). Backend scheduler honours it; frontend still uses IST helpers.
-- **Dose log ids**: `${reminderId}__${slot}__${date}` (deterministic → safe across devices).
+- **Slots and catch-up**: 4 notification slots (morning, afternoon, after_dinner, overall; times configurable per user). Each scheduler tick checks now + the 5 minutes before (`recentTimes`, never across midnight) so a late tick still delivers; claims in `notification_log` (user, date, key) stop doubles; at most one repeat per check-in per tick and none on top of a first send in the same tick; water sends only the latest due time; older than 5 min is skipped.
+- **Custom-time reminders** (`customTime`, no slots): pushed by the scheduler (claim `custom:<reminderId>`), dose log id `<reminderId>__custom__<date>`. Dose log ids otherwise `<reminderId>__<slot>__<date>` (deterministic, safe across devices).
+- **Routines** (migration 2026-11-16-routines.sql): a named group with its OWN time and repeat days, ONE notification and one check-in. NOT a table: a set of normal exact-time reminders (slots [], customTime = routine time, same repeat/isActive/remindAgain) sharing `routine_id` + `routine_name` + `routine_order`. Dose logs unchanged, so scores, stock, reports, family sharing need no change; only GROUPING differs, always by key `routine-<routineId>`: Today group (`lib/routines.ts`), `/checkin/routine-<id>`, snooze key, scheduler (`dueRoutines`, `routinePending`, `buildRoutineNotification|FollowUp|Snooze`; claim `routine:<id>`, tag `da-routine-<id>`, repeats `again:routine-<id>:<offset>`, family alert `care:<link>:routine-<id>` lists only its medicines). `dueCustom` skips routine items. Screens `/routines/add`, `/routines/edit/:id` (RoutineEditor: name, time, repeat, items with up/down arrows and a wrapping textarea title, remind again, pause, delete; the item form scrolls into view and focuses when opened). Reminders tab has "Add routine" and one card per routine. Save replaces all members in one `setReminders`. A medicine inside a routine opens the normal edit form for stock/course; its time, days, SOS and remind-again are hidden there (the routine owns them). Own account only (followers see its medicines as single medicines). If the migration is not run, sync saves rows without the routine columns (`upsertReminderRows`) and snoozing a routine fails.
+- **Check-in** (`/checkin/<slot>`, `custom-<id>`, `routine-<id>`): ticked = completed, unticked = `skipped` + `skippedReason: 'missed'` (counts as NOT done; deliberate skips stay excused: isExcused/isMissed).
+- **Remind me again** (per reminder, alarm style): `reminders.remind_again = {every 0|5|10|15|30, times 1..3}`; NULL = profile `follow_up_minutes` (0/15/30/60) as one repeat. `repeatsDue()` groups per check-in key, claim `again:<key>:<offset>`; stops when done, checked in, snoozed or after a snooze fired (`nomore:<key>`). Sync retries without the column if the migration is missing.
+- **Snooze** (10/30/60 min on check-in): `snoozes` table, one per user+key, max 3 h, DB trigger sets created_at. The scheduler takes due rows with delete...returning, sends only if still pending; future snoozes suppress repeats.
+- **Stock**: `medicine.stock = {quantity, unit, perDose, refilledAt, lowDays}`; remaining is DERIVED = quantity - perDose x completed doses since refilledAt. Editing "You have now" = new refill point. No alert if the course ends first or paused/finished. Today banner + a push every day at the user's morning time while low/out (`stock:<id>`). Refill screen `/refill/:id`.
+- **Course**: `medicine.startDate/endDate` (inclusive), honoured by `shouldReminderRunToday` and `runsOn`.
+- **As-needed (SOS)** medicines: `medicine.asNeeded`, never scheduled; Today "Only when needed" > "Took one" logs `<rid>__sos__<date>__<stamp>`; `isSos()` keeps them out of scores/weekly/report; `allLogs` (with SOS) feeds stock (lowDays = doses left).
+- **Holiday mode**: `profiles.paused_until` (inclusive, max 60 days). Nothing is due (so nothing is missed) and the scheduler skips the user entirely.
+- **Water**: own screen `/water`, not a reminder. `profiles.water = {on, every 30|60|120|180, from, to, goal}`; glasses in `water_logs` via RPC `add_water(date, +-1)`; scheduler at from+every..to (`water:<HH:MM>`), stops at goal. Not in scores or badge.
+- **Fix past days** (Progress > Calendar): `dayInstances(date)` + `setDayStatus`, last 60 days; past "Taken" is stamped at the scheduled time (stock stays right).
+- **Sunday summary**: Sunday at the user's night time, push "Your week: N% done" + most-missed pattern (`weeklySummary`); claim `weekly:<date>`.
+- **Doctor report** `/report`: 7/30/90 days, per-medicine taken/missed/%, SOS doses, disclaimer; made on the phone via window.print(), nothing sent.
+- **Family** (migration 2026-11-14-family.sql): `care_links` (owner_id takes medicines, carer_id follows, status pending|active|ended, can_manage, alert_after, 8-char code, 7-day expiry); RPCs `care_create_invite`, `care_invite_preview`, `care_accept`, `care_end`, `care_update`, `care_people`. RLS: followers READ only `category='medicine'` reminders and dose logs (`follows()`); `manages()` adds insert/update/delete of medicines. **Own-data queries must filter `.eq('user_id', uid)`.** Screens /family, /family/add, /family/join/:code, /family/:linkId, add/edit via AddReminder with `familyMode`. `checkFamily()`: "hasn't marked" push at dose time + alert_after (claim `care:<link>:<key>`), low stock at the owner's morning time (`care-stock:<link>:<rid>`).
+- **Invites from the app** (owner only): `profiles.is_admin` (set by migration, NOT in the update grant); Settings > Invite people uses admin RPCs that check `is_admin()`; WhatsApp message includes install steps (`lib/installText.ts`).
+- **Feedback and errors by email**: each tick emails new `feedback` rows (claim `feedback:<id>`); `lib/errorReport.ts` sends client errors to `client_errors`, and ONE grouped email per hour (claim `errors:<hour>`), rows deleted after 14 days. Both via Gmail SMTP (nodemailer) to FEEDBACK_EMAIL_TO.
+- **Demo mode**: "Try the demo" (Login, About, Guide) sets `da_demo_v1` and seeds sample data (Priya, a Morning routine, family Maa/Rohan) in localStorage `da_demo_*`; no request reaches the server; push, feedback, invites, delete account are disabled.
+- **Setup guide** `/setup` (install > notifications > test; iPhone push needs the Home Screen app) and public `/about`.
+- **Data/sync**: Supabase is the source of truth. AppContext keeps `data` (UI) and `synced`; a debounced flush upserts the diff and retries offline; cached in localStorage `da_cache_v3_<uid>`. Legacy pre-account keys (`da_reminders_v2`, `da_logs_v2`, `da_settings_v2`, `da_device_id`) are imported once on first login (or Settings > Import) and archived to `da_legacy_backup_v2`.
+- **App icon badge**: push `badge` = pending items whose time has come; the app recomputes every minute. **App updates**: sw.ts skipWaiting + clientsClaim; main.tsx checks on every open and reloads once.
+- **Tasks tab**: daily checklist with Submit Day (`daily_tasks`, `task_logs`, RPC `submit_day`), weekly grid, Manage screen (reorder with arrows; HTML5 drag does not work on iOS).
+- **Repeat formats**: weekly `repeat: 'weekly', repeatDays: [3]` (0=Mon..6=Sun); monthly `repeatDays: [1,15]`; twice daily = one reminder with two slots.
+- **No home-screen widgets** (needs a native app, 99 USD/yr). iOS web push has no action buttons. Avoid storing prescription photos.
 
-## Completed phases
-- ✅ Phase 1: Project setup, accounts (Supabase, Railway, Vercel, GitHub)
-- ✅ Phase 2: Full frontend PWA — Home (4 slot cards), Reminders, AddReminder, Reports, Calendar, Settings
-- ✅ Phase 3: Backend push notifications — Express + node-cron + web-push + Supabase, frontend hook + service worker
-- ✅ Phase 4: Full deployment — both Railway + Vercel live, push notifications confirmed working end-to-end
-- ✅ Phase 5: Daily Task Checklist — code done (Tasks tab, Submit Day, weekly grid, Manage screen)
-  - Not merged to main / SQL not run in prod — will be folded into Phase 6b (user-scoped) instead
-- ✅ Phase 6 (6a–6d, 6f): accounts, per-user server data, onboarding, multi-device push, privacy/feedback/delete
-  — code done & tested locally (RLS tests in real Postgres + browser E2E). **Needs setup: docs/SETUP-PHASE6.md**
-- ✅ Phase 7 (UI): Bloom theme (teal #0F766E / saffron #F5A524 / cream #FBF7F0, Tailwind `brand` + `saffron`),
-  Gentle Nudge logo (bubble + tick + saffron dot; public/icon*.svg/png, apple-touch-icon, maskable, badge-96),
-  Poppins font (Devanagari-ready, bundled), Today screen (teal header band, ring + next-up + slot dots,
-  saffron "Due now/Up next" slot), 4 tabs Today/Tasks/Reminders/Progress (Settings via avatar), undo,
-  celebrations, EmptyState, push text with dose ("Iron Syrup — 10 ml, after meal")
-- ✅ Phase 6e (9 Nov 2026): off Railway → Vercel functions (`frontend/api`) + Supabase pg_cron job
-  `daily-assistant-tick` (every minute, Bearer secret from Vault `daily_assistant_cron_secret`). Verified live:
-  /api/health all green, Send Test via Vercel, scheduled reminder sent by Vercel with Railway stopped.
-  Railway server code removed from the repo. Hosting cost: ₹0.
-
-## Live URLs
-- Frontend: https://daily-assistant-eta.vercel.app
-- API: same origin — https://daily-assistant-eta.vercel.app/api/health (config check)
-- GitHub: github.com/sakshishah-dev/daily-assistant (renamed from sakshi-shah-tatvasoft; old links redirect)
-
-## Deployment details
-### Railway — retired 9 Nov 2026
-- Replaced by Vercel functions + Supabase pg_cron. Lesson kept: the server must use a Supabase **secret** key
-  (`sb_secret_…`). With a publishable key RLS silently hides all rows → scheduler sends nothing.
-- The 8 Nov leaked default secret key was deleted; current backend key `railway-backend` (sb_secret_) now lives in
-  Vercel as SUPABASE_SERVICE_KEY (consider renaming/rotating it to `vercel-backend` some day).
-
-### Vercel (frontend + API functions)
-- Server env vars (NOT VITE_-prefixed → never in the bundle): SUPABASE_URL, SUPABASE_SERVICE_KEY (sb_secret_),
-  VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_EMAIL, CRON_SECRET, SMTP_USER, SMTP_PASS, FEEDBACK_EMAIL_TO.
-  Check config at /api/health.
-- vercel.json SPA rewrite excludes /api/*. VITE_API_URL is no longer used (API is same-origin).
-- Browser env vars: VITE_VAPID_PUBLIC_KEY, (VITE_API_URL — unused now, can be deleted),
-  VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY (= Supabase **publishable** key `sb_publishable_…`; supabase-js 2.119 supports it)
-- Frontend gets ONLY the publishable key. Backend gets ONLY a secret key. Never the other way round.
-- Root Directory: frontend
-
-## Supabase
-- Project: iiyeyisdmafernjjxkzu.supabase.co
-- Schema: backend/supabase/phase6-schema.sql (idempotent). See docs/SETUP-PHASE6.md for auth/SMTP/template config.
-- Invite a tester: in the app → Settings → Invite people (owner only). Fallback SQL: `insert into allowed_emails (email, note) values ('x@gmail.com', 'who');` (lowercase)
-- Invited so far: sakshi@gearedfinance.com.au, sakshishah5704@gmail.com (owner)
-- Setup progress (Nov 2026): Gmail app password ✅, SMTP ✅, email templates ✅ (OTP length 6), schema ✅, owner invites ✅
-- Migrations run in prod: 2026-11-09-follow-up.sql ✅ · 2026-11-09-snooze.sql ✅ · cron-1 + cron-2 ✅ · 2026-11-10-remind-again.sql ✅ · 2026-11-10-water.sql (confirm it was run) · 2026-11-11-holiday-mode.sql (run? confirm) · 2026-11-12-invites-and-errors.sql (confirm) · 2026-11-14-family.sql ✅ · 2026-11-15-language.sql (run? confirm) · 2026-11-16-routines.sql (run? confirm)
-- Feedback: Table Editor → feedback
-
-## VAPID keys (public key only — private key lives only in Vercel env VAPID_PRIVATE_KEY)
-- Public: BBox61hXVL7ChfkcJPzE-uJw7D3MKzNxC6kKo42Qg0ptRRJCzv4ZXU5tyMwTZEbudi26mGWUmSRgvNDOYkG3ChI
+## Live URLs and deployment
+- App https://daily-assistant-eta.vercel.app, health https://daily-assistant-eta.vercel.app/api/health, GitHub github.com/sakshishah-dev/daily-assistant.
+- Vercel server env (never VITE_): SUPABASE_URL, SUPABASE_SERVICE_KEY (sb_secret_), VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_EMAIL, CRON_SECRET, SMTP_USER, SMTP_PASS, FEEDBACK_EMAIL_TO. Browser env: VITE_VAPID_PUBLIC_KEY, VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY (= publishable sb_publishable_ key). vercel.json SPA rewrite excludes /api/*. With a publishable key on the server RLS silently hides all rows and nothing is sent.
+- Supabase project iiyeyisdmafernjjxkzu.supabase.co; schema `backend/supabase/phase6-schema.sql` (idempotent); setup in docs/SETUP-PHASE6.md. Invite fallback SQL: `insert into allowed_emails (email, note) values ('x@gmail.com', 'who');` (lowercase). Owners: sakshi@gearedfinance.com.au, sakshishah5704@gmail.com. Feedback: Table Editor > feedback.
+- Migrations run in prod: follow-up, snooze, cron-1+2, remind-again, family. To confirm: water, holiday-mode, invites-and-errors, language, 2026-11-16-routines.
+- Public VAPID key: BBox61hXVL7ChfkcJPzE-uJw7D3MKzNxC6kKo42Qg0ptRRJCzv4ZXU5tyMwTZEbudi26mGWUmSRgvNDOYkG3ChI (private key only in Vercel).
 
 ## Running locally
 ```bash
 cd frontend
-npm run dev                 # app on :5173 (proxies /api → :3001)
-node scripts/dev-api.mjs    # API functions on :3001 (needs SUPABASE_URL, SUPABASE_SERVICE_KEY, VAPID_*, CRON_SECRET)
-npm test && npm run test:api   # unit tests (app schedule logic + scheduler logic)
+npm run dev                 # app on :5173 (proxies /api to :3001)
+node scripts/dev-api.mjs    # API functions on :3001 (needs the server env vars)
+npx tsc --noEmit -p . && npm test && npm run test:api && npx vite build
 ```
-pg_cron check (Supabase SQL): `select status_code, left(content::text,60), created from net._http_response order by created desc limit 5;`
-Stop/start the minute job: `select cron.unschedule('daily-assistant-tick');` / re-run migrations/2026-11-10-cron-2-schedule.sql
+`npm test` writes to /tmp and fails on Windows: run `npx esbuild test/schedule.test.ts --bundle --platform=node --outfile=<any dir>/t.cjs && node <any dir>/t.cjs`. For browser checks use the dev server and "Try the demo" (390x844; English, Hindi, Gujarati). pg_cron check (SQL): `select status_code, left(content::text,60), created from net._http_response order by created desc limit 5;` Stop the job: `select cron.unschedule('daily-assistant-tick');`.
 
-## Phase 5: Daily Task Checklist (BUILT — original spec kept below for reference)
+## Branding
+Name "Daily Assistant" (trademark search clear 8 Nov 2026). Domain not bought; recommended dailyassistant.in (~937 INR, domain only, no add-ons). With a domain: Cloudflare Email Routing for hello@, Resend for login codes from no-reply@. Tagline idea: "medicine & routine reminders".
 
-### As built
-- Backend: `backend/src/routes/tasks.js` mounted at `/api/tasks`
-  - `GET /api/tasks?device_id=` · `POST /api/tasks` · `POST /api/tasks/delete` · `POST /api/tasks/reorder`
-  - `POST /api/tasks/submit` (409 if already submitted today) · `GET /api/tasks/week?device_id=&start=` (Mon–Sun week)
-  - "Today" is computed server-side in IST; all queries scoped by device_id; delete is soft (`is_active=false`) so history stays
-  - Delete/reorder use POST (CORS only allows GET/POST)
-- Frontend: `pages/Tasks.tsx` (/tasks), `pages/TasksWeek.tsx` (/tasks/week), `pages/ManageTasks.tsx` (/tasks/manage); new Tasks tab in BottomNav
-  - In-progress ticks saved in localStorage `da_task_checks_v1` keyed by IST date → auto-reset each morning
-  - Reorder uses up/down arrows (HTML5 drag doesn't work on iOS Safari touch)
-  - Device id helper moved to `lib/device.ts` (shared with push hook)
-
-### What Sakshi wants
-- A checklist of daily tasks shown on screen (or new Tasks tab)
-- Each task has a checkbox — tick done or leave undone
-- A **Submit Day** button — logs the day's completions to database, clears the screen
-- Weekend review: see day-by-day progress for the week (which tasks done each day)
-
-### Suggested implementation
-
-**New Supabase tables** (run in Supabase SQL Editor):
-```sql
--- User's task definitions
-create table if not exists daily_tasks (
-  id          uuid primary key default gen_random_uuid(),
-  device_id   text not null,
-  task_name   text not null,
-  sort_order  int not null default 0,
-  is_active   boolean not null default true,
-  created_at  timestamptz not null default now()
-);
-
--- Daily completion logs
-create table if not exists task_logs (
-  id           uuid primary key default gen_random_uuid(),
-  device_id    text not null,
-  task_id      uuid not null references daily_tasks(id),
-  date         date not null,           -- IST date, e.g. '2026-11-08'
-  completed    boolean not null default false,
-  submitted_at timestamptz,             -- null until Submit Day is pressed
-  unique(device_id, task_id, date)
-);
-
--- RLS: block direct client access
-alter table daily_tasks enable row level security;
-alter table task_logs enable row level security;
-```
-
-**New backend routes** (add to backend/src/routes/):
-- `GET /api/tasks?device_id=` — fetch user's active tasks + today's log
-- `POST /api/tasks` — create a new task
-- `POST /api/tasks/submit` — save all checked/unchecked for today, set submitted_at
-- `GET /api/tasks/week?device_id=` — return last 7 days of task_logs for progress view
-
-**New frontend page**: `frontend/src/pages/Tasks.tsx`
-- Shows list of tasks with checkboxes
-- If today already submitted: shows completion summary (e.g. "6/8 tasks done today")
-- If not submitted: shows checkboxes + Submit Day button
-- Manage Tasks link to add/remove/reorder tasks
-
-**Progress view**: in Reports page or new Tasks sub-view
-- 7-day grid: rows = tasks, columns = Mon–Sun
-- Green tick = completed, red cross = missed, grey = not submitted
-
-### Design spec
-- Task list resets each morning (all unchecked on new day)
-- User checks off tasks throughout the day
-- Presses "Submit Day" → saves to DB → shows "X/Y tasks done" summary → clears checkboxes for the day
-- Already submitted today → show summary instead of checkboxes
-- Tasks are user-defined (simple manage screen: add name, drag to reorder, delete)
-
-## Product direction (agreed Nov 2026)
-Goal: grow from personal app → proper app for 1000+ people, in stages. Not all at once.
-
-### Ground rules
-- **Cost: ₹0.** Free tiers only for at least the first year. Only acceptable spend: a domain (~₹500–1,600/yr) when ready.
-- **Users: India only** for now — but store timezone per user anyway (default `Asia/Kolkata`) so we never rewrite this.
-- **App stays free** for users; no ads, no trackers.
-- **Stay a PWA** (link → Safari → Add to Home Screen). No App Store / Play Store until there is real demand.
-- **Build the foundation before more features** — anything that would force a flow rewrite later goes first.
-- New feature ideas go on the side list below; Sakshi decides what gets built and when.
-
-### Rollout stages
-1. **Sakshi only (now)** — test everything in Safari, request changes as needed.
-2. **10–20 friends & family** — invite-only, gather feedback, add agreed suggestions.
-3. **~100 people** — harden (custom email sender, rate limits, backups, privacy policy, landing page).
-4. **1000+ / public** — uptime monitoring, load testing, cost review, maybe app stores.
-
-### Phase 6 — Foundation for 10–20 testers (NEXT, in this order)
-Each step ships and gets tested on Sakshi's phone before the next.
-- **6a. Login + profiles (invite-only)**
-  - Supabase Auth with **6-digit email code (OTP)**, typed inside the app. Not Google OAuth — on iOS the
-    home-screen app and Safari have separate storage, so OAuth redirects leave users logged in to the wrong one.
-  - Email sending: Gmail SMTP + app password (free, ~500/day) until a domain is bought; then Resend free tier
-    (3,000/mo) from `no-reply@<domain>`.
-  - Invite-only: only allow-listed emails can sign up.
-  - `profiles` table: name, timezone (default Asia/Kolkata), notification slot times.
-- **6b. Data on the server, per user**
-  - Move reminders, dose logs, settings, daily tasks from localStorage/device_id → Supabase rows keyed by `user_id`.
-  - RLS policies `user_id = auth.uid()` on every table (the main security layer).
-  - Keep a local cache for instant load; server is source of truth.
-  - One-time import of Sakshi's existing localStorage data into her account on first login.
-  - Fold Phase 5 into this: daily_tasks/task_logs become user-scoped (phase5 SQL was never run in prod — don't run it).
-- **6c. No pre-loaded medicines** — new users start empty with an "add your first medicine" onboarding.
-  Sakshi's Iron/D3/B12 come across via the 6b import. Remove hardcoded schedule from `data/initialData.ts`.
-- **6d. Multi-device push** — `push_subscriptions` keyed by user + endpoint (not one per device_id).
-  Move "already sent today" dedupe from in-memory Set to a DB table (restarts currently cause duplicate/missed pushes).
-- **6e. Retire Railway → ₹0** ✅ done — Vercel functions + Supabase pg_cron (not Edge Functions: reuses the tested Node code).
-- **6f. Trust & safety** — delete account + all data, data export, short privacy note, medical disclaimer,
-  in-app feedback button, Sentry free tier for error tracking.
-
-**Rule change (landed in Phase 6):** frontend talks to Supabase directly using the **anon/public key**, protected by RLS.
-The **service-role key still never goes in the frontend.**
-**Not done yet from 6f:** Sentry error tracking (optional, needs a free Sentry account + DSN).
-
-### Branding (in progress)
-- **Name chosen: "Daily Assistant"** (Sakshi's pick, Nov 2026). Domain not yet bought.
-- Trademark check done 8 Nov 2026 (ipindia, Wordmark/Contains, "Daily Assistant" + "Dailyassistant", classes 9/42/44): **no results** — clear.
-- Domain check (Namecheap, 8 Nov 2026) — all available: **dailyassistant.in ₹937 (renews ~₹1,125/yr) ← recommended**,
-  dailyassistant.app ₹1,031 (renews ~₹1,689), dailyassistant.co.in ₹750 (renews ~₹890), dailyassistant.org ₹796 (renews ~₹1,360).
-  dailyassistant.com is premium (₹6.8 lakh) — skip. Not bought yet. Buy domain only, no add-ons (hosting/email/SSL/DNS not needed).
-- Trade-offs accepted: generic name (harder to find in search; descriptive marks are hard to register as a trademark).
-  Mitigate with a distinctive logo + tagline, e.g. "Daily Assistant — medicine & routine reminders".
-- Earlier alternatives considered: Dincharya, DawaiDost, Niyam, RozCare, DoseDay.
-- Before buying: check domain (.in / .com / .app) on a registrar, and search the Indian trademark registry
-  (ipindia.gov.in → Trademark search, classes 9, 42, 44).
-- With a domain, a matching Gmail isn't needed: Cloudflare Email Routing (free) forwards `hello@<domain>` to Gmail;
-  Resend sends login codes from `no-reply@<domain>`.
-- App name and sender email are config values — Phase 6 work does not need to wait for the name.
-
-### Feature ideas — side list (build only after Phase 6, Sakshi picks)
-Status Nov 2026: ✅ built — 1 (skip insights, in Sunday summary), 3 (doctor report), 5 (fix past days), 7, 8, 9, 13,
-plus SOS medicines, holiday mode, water, routines (16 Nov). Open: 2, 10, 12 (11 Hindi+Gujarati ✅ built 15 Nov), tapering doses, people without a phone. Family (4/6/14) ✅ built 14 Nov.
-Sakshi's original list:
-1. Skip pattern insights — "you always miss Monday mornings" weekly insight card
-2. Grouped slot card with meal context — one "After Dinner" card showing all meds with before/after/with meal labels
-3. PDF adherence report export — doctor-shareable timestamped completion history
-4. Caregiver share link — read-only daily dashboard via URL, no account needed
-5. Dose history editing — fix wrong log without deleting and re-entering
-
-Suggested additions (ranked by usefulness for Indian users):
-6. Family care mode — manage a parent's meds from your phone, alert if they miss a dose (extends #4)
-7. Stock & refill alerts — "Iron Syrup runs out in ~5 days", computed from doses taken
-8. Missed-dose follow-up — re-notify after 30 min if not marked; quiet hours
-9. Course duration — "antibiotic for 5 days", auto-stops (startDate/endDate fields already exist)
-10. Health readings log — BP, sugar, weight with simple charts; pairs with #3
-11. Hindi + regional languages
-12. Doctor appointment & lab test reminders
-13. Weekly Sunday summary notification (pairs with #1)
-
-### Tester feedback backlog (from first friend test, 9 Nov 2026) — ✅ built (PR "Tester feedback")
-1. **Stock/course confusion:** friend had a medicine for 2 days, 3× a day; "warn me when ~3/5/7 days are left" made no
-   sense for such a short course. → Replace the 3/5/7 chips with a dropdown/stepper (1–14 days, or "doses left");
-   auto-hide/disable refill alerts when the course is shorter than the warning window; consider allowing 3 times a day
-   (currently max = 4 slots, but "times per day" isn't obvious) — make "how many times a day" explicit in the form.
-2. **Snooze like an alarm clock:** let users set snooze when ADDING a reminder (default snooze length, on/off toggle),
-   editable later — alarm-clock style (On/Off + duration), instead of only choosing on the check-in screen.
-3. **Feedback not received by email:** feedback IS saved — Supabase → Table Editor → `feedback` — but nothing emails
-   Sakshi. → Add an email notification for new feedback (e.g. Supabase database webhook / trigger → small API
-   function → email via Gmail SMTP or Resend), or a daily digest.
-
-Future (Sakshi wants this — design before building):
-14. **Family tracker** — e.g. a daughter follows a parent's medicines: see today's check-ins, get an alert when a dose
-    is missed, optionally manage the parent's reminders. Needs: invite/accept link between two accounts, a
-    `care_links` table (owner_id, carer_id, permissions, status), RLS policies granting carers read (and optionally
-    write) on the owner's rows, carer notifications on missed check-ins, and consent/revoke screens.
-    (Partly done already: stock 7 ✓, missed-dose follow-up 8 ✓, course duration 9 ✓, snooze ✓, templates ✓.)
-
-Notes: iOS web push does NOT support action buttons ("Mark done" from the notification) — tap opens the app.
-Avoid storing prescription photos for a long time (most sensitive data, not worth the early risk).
-
-## Market position
-No app currently combines: slot-based notifications + meal-aware medicine timing + habit/routine tracking + completion dashboard in a single free PWA. Closest competitor is CareClinic (clunky, expensive, no PWA). Gap confirmed via Reddit research.
+## Still open (Sakshi decides)
+Skip-pattern insights, health readings log (BP, sugar, weight), doctor appointment and lab reminders, tapering doses, people without a phone, Sentry (optional).

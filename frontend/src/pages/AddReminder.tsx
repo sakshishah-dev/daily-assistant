@@ -663,7 +663,7 @@ function AddReminderForm() {
         </>
       )}
 
-      <div className="sticky bottom-0 -mx-4 px-4 pt-3 mt-2 bg-cream dark:bg-[#0E0E10]"
+      <div className="save-bar"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
         <button onClick={handleSave} disabled={saving} className="btn-primary w-full disabled:opacity-60">
           {isEdit ? tr('Save changes') : tr('Add reminder')}
