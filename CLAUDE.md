@@ -178,10 +178,12 @@ C:\Users\LPI73\daily-assistant\
   `.`, `:`, `,`, `-` or `;`; for icons use lucide-react line icons (`CategoryIcon`, `NOTIFICATION_SLOTS[slot].icon`). Hindi/Gujarati
   dictionaries follow the same rule. WhatsApp invite messages (`inviteMessage`, `familyInviteMessage`) include exact iPhone + Android
   "add to Home Screen" steps (`lib/installText.ts`).
-- **Layout conventions**: tab bar (`.bottom-nav`) is SOLID (no transparency/backdrop-blur, own GPU layer) and `html` has the page colour,
-  so iPhone rubber-band scrolling never shows a different colour behind it. Sub-pages use `<div className="page pt-4">` + `<div className="page-header">`
-  (back `btn-icon` with ArrowLeft 20 + `page-title`); tab pages use `page pt-6`. Sticky save bars are solid; when the tab bar is visible they
-  sit above it (`bottom-[calc(60px+env(safe-area-inset-bottom,0px))]`). Check with scratchpad ui-measure.js / nav-check.js.
+- **Layout conventions**: the signed-in app is a FIXED FRAME (`.app-shell` fixed, `html.shell-locked`): the page scrolls inside `.app-scroll` and the tab bar
+  (`.bottom-nav`, solid) sits BELOW it as a normal flex item, so it can never move/float and rubber-band scrolling never shows the background under it.
+  Never use `window.scrollTo`/document scroll in the signed-in app; scroll `.app-scroll` (reset to top on route change in MainApp). Print CSS unlocks the frame.
+  Public pages (logged out: Login, About, Privacy) still use normal document scroll. Sub-pages use `<div className="page pt-4">` + `<div className="page-header">`
+  (back `btn-icon` with ArrowLeft 20 + `page-title`); tab pages use `page pt-6`. Sticky save bars are solid `sticky bottom-0` (they sit above the tab bar automatically);
+  forms hide the tab bar via HIDE_ON in BottomNav.
 - **App-icon badge**: push payload `badge` (pending items whose time has come) → SW `setAppBadge`; app recomputes every minute
 - **App updates**: sw.ts calls skipWaiting + clientsClaim; main.tsx checks for updates on every open (visibilitychange)
   and reloads once when a new version takes over. Settings shows build time + commit (`__BUILD_TIME__`, `__COMMIT__`).

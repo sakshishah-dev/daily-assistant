@@ -3,7 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { RefreshCw } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider, useApp } from './context/AppContext';
-import BottomNav, { isTabBarHidden } from './components/layout/BottomNav';
+import BottomNav from './components/layout/BottomNav';
 import Home         from './pages/Home';
 import Reminders    from './pages/Reminders';
 import AddReminder  from './pages/AddReminder';
@@ -32,7 +32,7 @@ import FamilyJoin   from './pages/FamilyJoin';
 import FamilyPerson from './pages/FamilyPerson';
 import FamilyEditor from './pages/FamilyEditor';
 import { rememberJoin, takePendingJoin } from './lib/family';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CelebrationLayer from './components/ui/Celebration';
 import { Splash } from './components/ui/Skeleton';
@@ -78,13 +78,21 @@ function SignedInApp() {
 /** Main app (signed in + onboarded). Finishes a family invite that was opened before logging in. */
 function MainApp({ pathname }: { pathname: string }) {
   const navigate = useNavigate();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  // The page scrolls inside the frame (see .app-shell in index.css): lock the document, and start every screen at the top.
+  useEffect(() => {
+    document.documentElement.classList.add('shell-locked');
+    return () => document.documentElement.classList.remove('shell-locked');
+  }, []);
+  useEffect(() => { scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' }); }, [pathname]);
   useEffect(() => {
     const code = takePendingJoin();
     if (code && !pathname.startsWith('/family/join/')) navigate(`/family/join/${code}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
-    <div className={`app-shell ${isTabBarHidden(pathname) ? 'no-tabbar' : ''}`}>
+    <div className="app-shell">
+      <div className="app-scroll" ref={scrollRef}>
       <DemoBanner />
       <Routes>
         <Route path="/"                     element={<Home />} />
@@ -119,6 +127,7 @@ function MainApp({ pathname }: { pathname: string }) {
         <Route path="/setup"                element={<Setup />} />
         <Route path="*"                     element={<Navigate to="/" replace />} />
       </Routes>
+      </div>
       <BottomNav />
       <CelebrationLayer />
       <ConfirmHost />
