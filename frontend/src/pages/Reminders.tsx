@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react';
 import { stockStatus, courseStatus, isAsNeeded } from '../utils/schedule';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit2, Trash2, Power, PowerOff } from 'lucide-react';
+import { Plus, Edit2, Trash2, Power, PowerOff, Layers } from 'lucide-react';
 import CategoryIcon from '../components/ui/CategoryIcon';
 import { useApp } from '../context/AppContext';
 import { SkeletonList } from '../components/ui/Skeleton';
 import EmptyState from '../components/ui/EmptyState';
 import { confirmDialog } from '../components/ui/ConfirmDialog';
-import { NOTIFICATION_SLOTS, CATEGORIES } from '../utils/constants';
+import { NOTIFICATION_SLOTS, CATEGORIES, DAYS_SHORT } from '../utils/constants';
+import { formatTime } from '../utils/dateHelpers';
+import { routinesOf, type Routine } from '../lib/routines';
 import type { Category, Reminder, TaskInstance } from '../types';
 import toast from 'react-hot-toast';
 import { t, locale, shortMonth} from '../lib/i18n';
@@ -26,7 +28,29 @@ export default function Reminders() {
 
   const [filter, setFilter] = useState<'all' | Category>('all');
 
-  const filtered = filter === 'all' ? reminders : reminders.filter(r => r.category === filter);
+  // Routine items are shown as ONE card per routine, never one by one.
+  const single = useMemo(() => reminders.filter(r => !r.routineId), [reminders]);
+  const routines = useMemo(() => routinesOf(reminders).filter(rt => filter === 'all' || rt.items.some(r => r.category === filter)), [reminders, filter]);
+  const filtered = filter === 'all' ? single : single.filter(r => r.category === filter);
+
+  const toggleRoutine = (rt: Routine) => {
+    setReminders(prev => prev.map(r => r.routineId === rt.id ? { ...r, isActive: !rt.isActive } : r));
+    toast.success(rt.isActive ? t('Routine paused') : t('Routine is on again'), { id: 'routine' });
+  };
+  const deleteRoutine = async (rt: Routine) => {
+    const ok = await confirmDialog({
+      title: t('Delete the routine "{name}"?', { name: rt.name }),
+      message: t(rt.items.length === 1 ? 'Its 1 item will stop reminding you. Your past history stays in Progress.' : 'All {n} items in it will stop reminding you. Your past history stays in Progress.', { n: rt.items.length }),
+      confirmText: t('Delete routine'), tone: 'danger',
+    });
+    if (!ok) return;
+    setReminders(prev => prev.filter(r => r.routineId !== rt.id));
+    toast.success(t('Routine deleted'));
+  };
+  const routineRepeat = (rt: Routine) =>
+    rt.repeat === 'weekdays' ? t('Weekdays')
+    : (rt.repeat === 'weekly' || rt.repeat === 'custom') && rt.repeatDays?.length ? rt.repeatDays.map(i => DAYS_SHORT[i]).join(', ')
+    : t('Daily');
 
   const toggleActive = (id: string) => {
     setReminders(prev => prev.map(r => r.id === id ? { ...r, isActive: !r.isActive } : r));
@@ -50,15 +74,21 @@ export default function Reminders() {
 
   return (
     <div className="page pt-6">
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between gap-2 flex-wrap mb-5">
         <h1 className="page-title">{t('Reminders')}</h1>
-        <button
-          onClick={() => navigate('/reminders/add')}
-          className="btn-primary py-2 px-4"
-        >
-          <Plus size={16} />
-          {t('Add')}
-        </button>
+        <div className="flex items-center gap-2 ml-auto">
+          <button onClick={() => navigate('/routines/add')} className="btn-secondary py-2 px-3 text-brand-700 dark:text-brand-300">
+            <Layers size={16} />
+            {t('Add routine')}
+          </button>
+          <button
+            onClick={() => navigate('/reminders/add')}
+            className="btn-primary py-2 px-4"
+          >
+            <Plus size={16} />
+            {t('Add')}
+          </button>
+        </div>
       </div>
 
       {/* Filter tabs */}
@@ -80,7 +110,7 @@ export default function Reminders() {
 
       {reminders.length === 0 && !fresh ? (
         <SkeletonList rows={4} circle={false} />
-      ) : filtered.length === 0 ? (
+      ) : filtered.length === 0 && routines.length === 0 ? (
         <EmptyState
           title={reminders.length ? t('Nothing in this category') : t('No reminders yet')}
           text={reminders.length ? t('Try another filter, or add a new reminder.') : t('Add your medicines and daily habits. We will remind you at the right time.')}
@@ -88,6 +118,40 @@ export default function Reminders() {
         />
       ) : (
         <div className="space-y-3">
+          {routines.map(rt => (
+            <div key={rt.id} className={`card p-4 ${!rt.isActive ? 'opacity-50' : ''}`} data-routine={rt.id}>
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center bg-brand-50 text-brand-700 dark:bg-white/[0.06] dark:text-brand-300">
+                  <Layers size={20} strokeWidth={1.9} aria-hidden="true" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white break-words">{rt.name}</p>
+                  <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                    <span className="badge bg-brand-50 text-brand-700 dark:bg-white/[0.06] dark:text-brand-300">{formatTime(rt.time)}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{routineRepeat(rt)}</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">{t(rt.items.length === 1 ? '1 item' : '{n} items', { n: rt.items.length })}</span>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 break-words">{rt.items.map(r => r.title).join(', ')}</p>
+                  {rt.items.filter(r => r.category === 'medicine').map(r => <ReminderExtras key={r.id} r={r} logs={allLogs} />)}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-50 dark:border-[#2C2C2E]">
+                <button onClick={() => navigate(`/routines/edit/${rt.id}`)} className="btn h-8 px-3 text-xs rounded-xl text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-white/[0.06]">
+                  <Edit2 size={13} /> {t('Edit')}
+                </button>
+                <button onClick={() => toggleRoutine(rt)}
+                  className={`btn h-8 px-3 text-xs rounded-xl ${rt.isActive
+                    ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400'
+                    : 'bg-gray-100 dark:bg-[#2C2C2E] text-gray-400'}`}>
+                  {rt.isActive ? <Power size={13} /> : <PowerOff size={13} />}
+                  {rt.isActive ? t('Active') : t('Paused')}
+                </button>
+                <button onClick={() => deleteRoutine(rt)} className="ml-auto btn h-8 w-8 rounded-xl bg-gray-100 dark:bg-[#2C2C2E] text-gray-500 dark:text-gray-400 hover:bg-red-50 hover:text-red-500" aria-label={t('Delete {title}', { title: rt.name })}>
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+          ))}
           {filtered.map(r => {
             const cat = CATEGORIES[r.category];
             return (

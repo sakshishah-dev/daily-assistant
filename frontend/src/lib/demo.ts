@@ -91,7 +91,11 @@ function seed() {
       medicine: { dosage: t('1 tablet'), mealRelation: 'after', startDate: shift(today, -2), endDate: shift(today, 2) } }),
     med({ id: 'demo-pcm', title: 'Paracetamol', slots: [], medicine: { dosage: t('1 tablet'), mealRelation: 'after', asNeeded: true,
       stock: { quantity: 10, unit: 'tablets', perDose: 1, refilledAt: iso(shift(today, -10), '07:00'), lowDays: 3 } } }),
-    { id: 'demo-walk', title: t('Morning walk'), category: 'habit', slots: [], customTime: '07:00', repeat: 'daily', isActive: true, createdAt: created, description: t('20 minutes') },
+    // One routine: four things at 7:00 AM with a single notification and check-in (see lib/routines.ts)
+    ...([['demo-hotwater', t('Hot water')], ['demo-walk', t('Morning walk')], ['demo-shake', t('Protein shake')], ['demo-coffee', t('Black coffee')]] as const)
+      .map(([id, title], i): Reminder => ({ id, title, category: 'habit', slots: [], customTime: '07:00', repeat: 'daily', isActive: true, createdAt: created,
+        remindAgain: { every: 15, times: 1 }, routineId: 'demo-morning', routineName: t('Morning routine'), routineOrder: i,
+        ...(id === 'demo-walk' && { description: t('20 minutes') }) })),
     { id: 'demo-read', title: t('Read 10 pages'), category: 'habit', slots: ['after_dinner'], repeat: 'daily', isActive: true, createdAt: created },
     { id: 'demo-meditate', title: t('Meditate'), category: 'routine', slots: ['morning'], repeat: 'weekdays', isActive: true, createdAt: created },
   ];

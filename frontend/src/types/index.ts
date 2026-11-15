@@ -42,6 +42,10 @@ export interface Reminder {
   medicine?: MedicineDetails;
   /** Alarm-style repeats while still pending. every 0 = off. undefined = use the Settings default. */
   remindAgain?: { every: number; times: number };
+  /** Routine: a named group of exact-time reminders that share one time, one notification and one check-in. */
+  routineId?: string;
+  routineName?: string;
+  routineOrder?: number;        // position inside the routine (0 = first)
 }
 
 export interface TaskInstance {

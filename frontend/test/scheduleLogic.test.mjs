@@ -178,3 +178,91 @@ console.log('scheduleLogic: all tests passed');
   assert.match(buildFamilyNotification('Maa', { items: [{ title: 'BP' }], time: '08:00', key: 'morning' }, 'l1', 'hi').title, /Maa/);
   assert.equal(buildSlotNotification('morning', '08:00', due, 1, 'xx').title, en.title);   // unknown language → English
 }
+
+// ── Routines: a group of exact-time reminders with ONE notification ───────────
+{
+  const { dueRoutines, routinePending, buildRoutineNotification, buildRoutineFollowUp, buildRoutineSnooze, dueCustom, repeatsDue,
+    pendingDueCount, familyDue, buildFamilyNotification, recentTimes } = await import('../api/_lib/scheduleLogic.js');
+  const day = { date: '2026-11-16', time: '07:00', weekday: 0, dayOfMonth: 16 };   // Monday
+  const item = (id, title, order, extra = {}) => ({ id, title, category: 'habit', slots: [], custom_time: '07:00', repeat: 'daily', is_active: true,
+    routine_id: 'rt1', routine_name: 'Morning routine', routine_order: order, remind_again: { every: 10, times: 2 }, ...extra });
+  const routine = [
+    item('coffee', 'Black coffee', 4),
+    item('med', 'Thyroid tablet', 0, { category: 'medicine', medicine: { dosage: '50 mcg', mealRelation: 'before' } }),
+    item('water', 'Hot water', 1), item('walk', 'Morning walk', 2), item('shake', 'Protein shake', 3),
+  ];
+  const plain = { id: 'p1', title: 'Calcium', category: 'medicine', slots: [], custom_time: '07:00', repeat: 'daily', is_active: true };
+  const all = [...routine, plain];
+
+  // One notification for the 5 items, in routine order; the plain exact-time reminder still goes out on its own
+  let due = dueRoutines(all, new Map(), day);
+  assert.strictEqual(due.length, 1);
+  assert.deepStrictEqual(due[0].items.map(r => r.id), ['med', 'water', 'walk', 'shake', 'coffee']);
+  assert.deepStrictEqual(dueCustom(all, new Map(), day).map(r => r.id), ['p1']);
+  const n = buildRoutineNotification(due[0], 6);
+  assert.deepStrictEqual(n, { title: 'Morning routine · 7:00 AM', body: 'Thyroid tablet: 50 mcg, before meal\nHot water\nMorning walk\nProtein shake\n+1 more',
+    tag: 'da-routine-rt1', url: '/checkin/routine-rt1', badge: 6 });
+  assert.strictEqual(buildRoutineNotification(due[0]).badge, 5);
+  assert.strictEqual(dueRoutines(all, new Map(), { ...day, time: '07:01' }).length, 0);          // only at its own time
+
+  // Partly done still sends (only what is left); all done or skipped: nothing
+  const some = new Map([['med__custom__2026-11-16', { status: 'completed' }], ['water__custom__2026-11-16', { status: 'skipped' }]]);
+  due = dueRoutines(all, some, day);
+  assert.deepStrictEqual(due[0].items.map(r => r.id), ['walk', 'shake', 'coffee']);
+  assert.strictEqual(buildRoutineNotification(due[0]).body, 'Morning walk\nProtein shake\nBlack coffee');
+  const done = new Map(routine.map(r => [`${r.id}__custom__2026-11-16`, { status: 'completed' }]));
+  assert.strictEqual(dueRoutines(all, done, day).length, 0);
+  assert.strictEqual(routinePending(all, done, day, 'rt1'), null);
+
+  // Paused routine, or a day it does not run: nothing
+  assert.strictEqual(dueRoutines(routine.map(r => ({ ...r, is_active: false })), new Map(), day).length, 0);
+  assert.strictEqual(dueRoutines(routine.map(r => ({ ...r, repeat: 'weekly', repeat_days: [5, 6] })), new Map(), day).length, 0);
+  // Two routines at the same time: two notifications, each with its own key
+  const second = [item('x', 'Stretch', 0, { routine_id: 'rt2', routine_name: 'Yoga' })];
+  assert.deepStrictEqual(dueRoutines([...routine, ...second], new Map(), day).map(g => g.key).sort(), ['routine-rt1', 'routine-rt2']);
+
+  // Remind me again: ONE repeat for the routine (key routine-<id>), stops when everything is ticked
+  const slotT = { morning: '08:00', afternoon: '13:00', after_dinner: '20:30', overall: '22:00' };
+  const rep = repeatsDue(all, some, slotT, { ...day, time: '07:10' }, 15);
+  assert.deepStrictEqual(rep.map(g => [g.key, g.offset, g.items.map(r => r.id).join(',')]), [['routine-rt1', 10, 'walk,shake,coffee']]);
+  assert.strictEqual(buildRoutineFollowUp(rep[0], 3).title, 'Still pending · Morning routine');
+  assert.strictEqual(buildRoutineFollowUp(rep[0], 3).tag, 'da-routine-rt1');                     // replaces the first notification
+  assert.strictEqual(buildRoutineFollowUp(rep[0], 3).url, '/checkin/routine-rt1');
+  assert.strictEqual(repeatsDue(all, some, slotT, { ...day, time: '07:20' }, 15)[0].offset, 20);
+  assert.strictEqual(repeatsDue(all, some, slotT, { ...day, time: '07:30' }, 15).length, 0);    // 2 repeats max
+  assert.deepStrictEqual(repeatsDue(all, done, slotT, { ...day, time: '07:15' }, 15).map(g => g.key), ['custom-p1']);   // plain one: profile default
+
+  // Snooze: key routine-<id> gives whatever is still pending, at any later time
+  const z = routinePending(all, some, { ...day, time: '07:42' }, 'rt1');
+  assert.strictEqual(z.key, 'routine-rt1');
+  assert.deepStrictEqual(buildRoutineSnooze(z, 3), { title: 'Snoozed · Morning routine', body: 'Morning walk\nProtein shake\nBlack coffee',
+    tag: 'da-snooze-/checkin/routine-rt1', url: '/checkin/routine-rt1', badge: 3 });
+
+  // Badge: every pending routine item counts once its time has come
+  assert.strictEqual(pendingDueCount(all, some, slotT, { ...day, time: '07:05' }), 4);           // 3 routine items + Calcium
+  assert.strictEqual(pendingDueCount(all, some, slotT, { ...day, time: '06:59' }), 0);
+
+  // Hindi / Gujarati: the routine name and item names stay as typed; the rest is translated
+  const full = dueRoutines(all, new Map(), day)[0];
+  assert.strictEqual(buildRoutineNotification(full, 5, 'hi').title, 'Morning routine · 7:00 AM');
+  assert.strictEqual(buildRoutineNotification(full, 5, 'hi').body.split('\n')[0], 'Thyroid tablet: 50 mcg, खाने से पहले');
+  assert.strictEqual(buildRoutineNotification(full, 5, 'gu').body.split('\n')[4], '+1 વધુ');
+  assert.strictEqual(buildRoutineFollowUp(z, 3, 'hi').title, 'अभी बाकी · Morning routine');
+  assert.strictEqual(buildRoutineFollowUp(z, 3, 'gu').title, 'હજુ બાકી · Morning routine');
+  assert.strictEqual(buildRoutineSnooze(z, 3, 'gu').title, 'સ્નૂઝ · Morning routine');
+  const unnamed = routinePending(routine.map(r => ({ ...r, routine_name: null })), new Map(), day, 'rt1');
+  assert.strictEqual(buildRoutineNotification(unnamed, 5, 'hi').title, 'रूटीन · 7:00 AM');
+  assert.strictEqual(buildRoutineNotification({ ...unnamed, name: 'Morning' }, 5, 'hi').title, 'Morning · 7:00 AM');   // a typed name is never translated
+
+  // Family "not taken yet": only the medicine in the routine, one alert under the routine key
+  const meds = all.filter(r => r.category === 'medicine');                                       // what the family check loads
+  const at8 = { ...day, time: '08:00' };
+  const fam = familyDue(meds, new Map(), slotT, at8, 60, recentTimes('08:00'));
+  assert.deepStrictEqual(fam.map(g => [g.key, g.items.map(r => r.id).join(',')]).sort(), [['custom-p1', 'p1'], ['routine-rt1', 'med']]);
+  assert.strictEqual(familyDue(all, new Map(), slotT, at8, 60, recentTimes('08:00')).find(g => g.key === 'routine-rt1').items.length, 1);   // habits never shared
+  assert.strictEqual(familyDue(meds, some, slotT, at8, 60, recentTimes('08:00')).some(g => g.key === 'routine-rt1'), false);   // taken: no alert
+  const famN = buildFamilyNotification('Maa', fam.find(g => g.key === 'routine-rt1'), 'L1');
+  assert.match(famN.body, /Thyroid tablet \(7:00 AM\)/);
+  assert.strictEqual(famN.tag, 'da-family-L1-routine-rt1');
+  console.log('scheduleLogic: routine tests passed');
+}

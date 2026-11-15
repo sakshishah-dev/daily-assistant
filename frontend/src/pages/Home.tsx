@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Check, SkipForward, Clock, UserRound, Pill, Package, Plane, Bell, CheckCircle2, type LucideIcon } from 'lucide-react';
+import { Plus, Check, SkipForward, Clock, UserRound, Pill, Package, Plane, Bell, CheckCircle2, Layers, type LucideIcon } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { getGreeting, getTodayIST, formatTime, getCurrentTimeIST, isExcused, isMissed } from '../utils/dateHelpers';
 import { NOTIFICATION_SLOTS, SLOT_ORDER, CATEGORIES } from '../utils/constants';
@@ -10,6 +10,7 @@ import { stockStatus, isAsNeeded, isPausedOn } from '../utils/schedule';
 import WaterCard from '../components/WaterCard';
 import FamilyTodayCard from '../components/FamilyTodayCard';
 import { isDemo } from '../lib/demo';
+import { routineKey } from '../lib/routines';
 import EmptyState from '../components/ui/EmptyState';
 import { TodaySkeleton } from '../components/ui/Skeleton';
 import { celebrate } from '../components/ui/Celebration';
@@ -80,16 +81,26 @@ export default function Home() {
       .sort((a, b) => Number(b.s.out) - Number(a.s.out) || (a.s.daysLeft ?? 0) - (b.s.daysLeft ?? 0));
   }, [reminders, allLogs]);
 
-  // Slot groups + any custom-time reminders
+  /** The routine an item belongs to (routines are exact-time reminders that share a routineId). */
+  const routineOf = (t: TaskInstance) => (t.slot ? undefined : reminderById.get(t.reminderId)?.routineId);
+
+  // Slot groups, one group per routine (own time), then any other exact-time reminders
   const groups: Group[] = useMemo(() => {
+    const routineOfTask = (t: TaskInstance) => (t.slot ? undefined : reminderById.get(t.reminderId)?.routineId);
+    const order = (t: TaskInstance) => reminderById.get(t.reminderId)?.routineOrder ?? 0;
     const out: Group[] = SLOT_ORDER.map((s: NotificationSlot) => ({
       key: s, label: NOTIFICATION_SLOTS[s].label, Icon: NOTIFICATION_SLOTS[s].icon,
       time: settings.notificationSlotTimes[s], tasks: todayTasks.filter(t => t.slot === s).sort(byCategory),
     }));
-    const custom = todayTasks.filter(t => !t.slot).sort(byCategory);
-    if (custom.length) out.push({ key: 'custom', label: tr('Other times'), Icon: Clock, time: '', tasks: custom });
-    return out.filter(g => g.tasks.length);
-  }, [todayTasks, settings.notificationSlotTimes]);
+    for (const id of new Set(todayTasks.map(routineOfTask).filter((x): x is string => !!x))) {
+      const tasks = todayTasks.filter(t => routineOfTask(t) === id).sort((x, y) => order(x) - order(y));
+      out.push({ key: routineKey(id), label: reminderById.get(tasks[0].reminderId)?.routineName || tr('Routine'), Icon: Layers, time: tasks[0].scheduledTime, tasks });
+    }
+    const timed = out.filter(g => g.tasks.length).sort((x, y) => x.time.localeCompare(y.time));   // stable: slots keep their order
+    const custom = todayTasks.filter(t => !t.slot && !routineOfTask(t)).sort(byCategory);
+    if (custom.length) timed.push({ key: 'custom', label: tr('Other times'), Icon: Clock, time: '', tasks: custom });
+    return timed;
+  }, [todayTasks, settings.notificationSlotTimes, reminderById]);
 
   const active = todayTasks.filter(t => !isExcused(t));
   const doneCount = active.filter(t => t.status === 'completed').length;
@@ -97,7 +108,9 @@ export default function Home() {
     .sort((a, b) => a.scheduledTime.localeCompare(b.scheduledTime) || byCategory(a, b));
   const next = pending[0];
   const nextReminder = next ? reminderById.get(next.reminderId) : undefined;
-  const nextGroupPending = next ? pending.filter(t => t.slot === next.slot && t.scheduledTime === next.scheduledTime).length : 0;
+  const nextGroup = next ? groups.find(g => g.tasks.some(t => t.id === next.id)) : undefined;
+  const nextGroupPending = next && nextGroup
+    ? nextGroup.tasks.filter(t => t.status === 'pending' && (nextGroup.key !== 'custom' || t.scheduledTime === next.scheduledTime)).length : 0;
   const allDone = todayTasks.length > 0 && pending.length === 0;
 
   /** Short message with an Undo button — makes it obvious that a tap can be reversed. */
@@ -119,6 +132,11 @@ export default function Home() {
       toast.success(tr('{slot} done', { slot: NOTIFICATION_SLOTS[t.slot].label }), { id: 'today-action' });
       return;
     }
+    const rid = routineOf(t);
+    if (rid && !remaining.some(x => routineOf(x) === rid)) {
+      toast.success(tr('{slot} done', { slot: reminderById.get(t.reminderId)?.routineName || tr('Routine') }), { id: 'today-action' });
+      return;
+    }
     undoToast(tr(actionWord(reminderById.get(t.reminderId)) === 'taken' ? '{title} taken' : '{title} done', { title: t.title }), t.id);
   };
 
@@ -136,7 +154,7 @@ export default function Home() {
   const nextLabel = next
     ? next.scheduledTime <= nowTime ? tr('Due since {time}', { time: formatTime(next.scheduledTime) }) : tr('Next up · {time}', { time: formatTime(next.scheduledTime) })
     : '';
-  const nextName = next ? (next.slot ? NOTIFICATION_SLOTS[next.slot].label : tr('Reminder')) : '';
+  const nextName = next ? (next.slot ? NOTIFICATION_SLOTS[next.slot].label : nextGroup && nextGroup.key !== 'custom' ? nextGroup.label : tr('Reminder')) : '';
 
   const paused = isPausedOn(profile, today);
   const pausedLabel = profile.paused_until
@@ -347,8 +365,8 @@ export default function Home() {
               <section key={g.key} className="mb-4">
                 <div className="flex items-center gap-2 mb-2 px-1">
                   <span className={complete ? 'text-emerald-600' : 'text-brand-600 dark:text-brand-400'}>{complete ? <CheckCircle2 size={18} strokeWidth={1.9} /> : <g.Icon size={18} strokeWidth={1.8} />}</span>
-                  <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{g.label}</h2>
-                  {g.time && <span className="text-xs text-gray-400">{formatTime(g.time)}</span>}
+                  <h2 className="text-sm font-semibold text-gray-900 dark:text-white min-w-0 truncate">{g.label}</h2>
+                  {g.time && <span className="text-xs text-gray-400 flex-shrink-0">{formatTime(g.time)}</span>}
                   {isCurrent && (
                     <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-saffron-500/15 text-saffron-600">
                       {isDue ? tr('Due now') : tr('Up next')}

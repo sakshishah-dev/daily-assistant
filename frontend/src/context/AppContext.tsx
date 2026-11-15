@@ -9,7 +9,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth, userCacheKey } from './AuthContext';
 import {
   reminderToRow, rowToReminder, logToRow, rowToLog, diffById, diffProfile, mergeSnapshot,
-  groupLogs, flattenLogs, dedupeById, readLegacyData, archiveLegacyData, type ReminderRow, type LogRow,
+  groupLogs, flattenLogs, dedupeById, readLegacyData, archiveLegacyData, upsertReminderRows, type ReminderRow, type LogRow,
 } from '../lib/sync';
 
 /**
@@ -240,11 +240,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
       if (rem.upserts.length) {
         const rows = rem.upserts.map(r => ({ ...reminderToRow(r), user_id: uid, updated_at: now }));
-        let { error } = await supabase.from('reminders').upsert(rows, { onConflict: 'user_id,id' });
-        if (error && /remind_again/.test(error.message)) {   // column not added yet (migration pending)
-          ({ error } = await supabase.from('reminders')
-            .upsert(rows.map(({ remind_again: _omit, ...r }) => r), { onConflict: 'user_id,id' }));
-        }
+        // Columns whose migration hasn't been run yet (remind_again, routine_*) are left out; the rest is saved.
+        const error = await upsertReminderRows(rows, r => supabase.from('reminders').upsert(r, { onConflict: 'user_id,id' }));
         if (error) throw error;
       }
       if (rem.deletes.length) {

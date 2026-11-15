@@ -7,6 +7,7 @@ import BottomNav, { isTabBarHidden } from './components/layout/BottomNav';
 import Home         from './pages/Home';
 import Reminders    from './pages/Reminders';
 import AddReminder  from './pages/AddReminder';
+import RoutineEditor from './pages/RoutineEditor';
 import Settings     from './pages/Settings';
 import Tasks        from './pages/Tasks';
 import TasksWeek    from './pages/TasksWeek';
@@ -93,6 +94,8 @@ function MainApp({ pathname }: { pathname: string }) {
         <Route path="/reminders"            element={<Reminders />} />
         <Route path="/reminders/add"        element={<AddReminder />} />
         <Route path="/reminders/edit/:id"   element={<AddReminder />} />
+        <Route path="/routines/add"         element={<RoutineEditor />} />
+        <Route path="/routines/edit/:id"    element={<RoutineEditor />} />
         <Route path="/progress"             element={<Progress />} />
         <Route path="/checkin/:key"         element={<CheckIn />} />
         <Route path="/refill/:id"           element={<Refill />} />

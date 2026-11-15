@@ -28,6 +28,7 @@ export const FEATURES: FeatureSection[] = [
   {
     title: 'Medicines & reminders',
     items: [
+      { title: 'Routines', what: 'Put several things in one group with its own time, like a morning routine: medicine, hot water, walk, protein shake, coffee. You get ONE notification that lists them all, tick them together, and edit, pause or delete the whole group at once. Medicines in a routine keep their dose, meal and refill alerts.', where: 'Reminders → Add routine', check: 'Today shows the routine as one group with its time; one notification arrives and opens a check-in with every item', added: '2026-11-16' },
       { title: 'Quick start', what: 'One tap fills the pattern (once/twice daily, weekly, 5-day course, SOS) or a habit (walk, sleep, read…). You add the medicine name and dose as prescribed.', where: 'Reminders → Add', check: 'Medicine buttons never fill in a medicine name or dose' },
       { title: 'Times & repeat', what: 'Pick one or more daily times (or an exact time) and repeat every day, some days, monthly or once.', where: 'Reminders → Add → Time / Repeat' },
       { title: 'Course length', what: '"For 5 days" or "until a date". Reminders stop by themselves.', where: 'Add → More options → Course', check: 'List shows "Day 2 of 5", then "Course finished"' },

@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import { isDemo, demoGet, demoSet } from './demo';
 
-/** Snooze a check-in ('after_dinner', 'custom-<id>') for N minutes. Replaces any existing snooze for it. */
+/** Snooze a check-in ('after_dinner', 'custom-<id>', 'routine-<routineId>') for N minutes. Replaces any existing snooze for it. */
 export async function snooze(key: string, minutes: number): Promise<Date> {
   const due = new Date(Date.now() + minutes * 60_000);
   if (isDemo()) { demoSet('snoozes', { ...demoGet<Record<string, string>>('snoozes', {}), [key]: due.toISOString() }); return due; }
