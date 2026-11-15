@@ -107,10 +107,11 @@ function buildSlotFollowUp(slot, due, badge, lang = 'en') {
 }
 
 
-/** Reminders set to a specific time ("Use a specific time instead") that are due right now. */
+/** Reminders set to a specific time ("Use a specific time instead") that are due right now.
+ *  Routine items are not included: a routine sends ONE notification for all its items (see dueRoutines). */
 function dueCustom(reminders, logsById, day) {
   return reminders.filter(r =>
-    r.is_active && r.custom_time === day.time && !(r.slots || []).length && runsOn(r, day) &&
+    r.is_active && !r.routine_id && r.custom_time === day.time && !(r.slots || []).length && runsOn(r, day) &&
     (() => { const log = logsById.get(`${r.id}__custom__${day.date}`); return !log || log.status === 'pending'; })());
 }
 
@@ -122,6 +123,58 @@ function buildCustomFollowUp(r, badge, lang = 'en') {
   return { title: tr(lang, 'Still pending · Reminder'), body: reminderLine(r, lang), tag: `da-custom-${r.id}`, url: `/checkin/custom-${r.id}`, badge: badge ?? 1 };
 }
 
+// ── Routines: exact-time reminders that share routine_id (one notification, one check-in) ──
+const routineKeyOf = id => `routine-${id}`;
+const byRoutineOrder = (a, b) => (a.routine_order ?? 0) - (b.routine_order ?? 0);
+
+/** A routine's items that run today and are still pending, whatever the time. null when nothing is left to do.
+ *  Returns { id, key, name, time, items } (items in routine order; name '' if it was never set). */
+function routinePending(reminders, logsById, day, routineId) {
+  const items = reminders.filter(r => {
+    if (r.routine_id !== routineId || !r.is_active || !r.custom_time || (r.slots || []).length || !runsOn(r, day)) return false;
+    const log = logsById.get(`${r.id}__custom__${day.date}`);
+    return !log || log.status === 'pending';
+  }).sort(byRoutineOrder);
+  if (!items.length) return null;
+  return { id: routineId, key: routineKeyOf(routineId), name: items[0].routine_name || '', time: items[0].custom_time, items };
+}
+
+/** Routines whose time is exactly day.time and that still have something pending. */
+function dueRoutines(reminders, logsById, day) {
+  const now = reminders.filter(r => r.routine_id && r.custom_time === day.time);
+  return [...new Set(now.map(r => r.routine_id))].map(id => routinePending(now, logsById, day, id)).filter(Boolean);
+}
+
+const routineName = (g, lang) => g.name || tr(lang, 'Routine');   // the name is the user's own text: never translated
+
+/** ONE notification for a whole routine: "Morning routine · 7:00 AM" + its pending items. Opens the routine check-in. */
+function buildRoutineNotification(g, badge, lang = 'en') {
+  return {
+    title: `${routineName(g, lang)} · ${prettyTime(g.time)}`,
+    body:  linesFor(g.items, lang),
+    tag:   `da-routine-${g.id}`,
+    url:   `/checkin/routine-${g.id}`,
+    badge: badge ?? g.items.length,
+  };
+}
+
+/** "Remind me again" for a routine. Replaces the first notification (same tag). */
+function buildRoutineFollowUp(g, badge, lang = 'en') {
+  return {
+    title: tr(lang, 'Still pending · {slot}', { slot: routineName(g, lang) }),
+    body:  linesFor(g.items, lang),
+    tag:   `da-routine-${g.id}`,
+    url:   `/checkin/routine-${g.id}`,
+    badge: badge ?? g.items.length,
+  };
+}
+
+/** A snoozed routine that is still pending. */
+function buildRoutineSnooze(g, badge, lang = 'en') {
+  const url = `/checkin/routine-${g.id}`;
+  return { title: tr(lang, 'Snoozed · {label}', { label: routineName(g, lang) }), body: linesFor(g.items, lang), tag: `da-snooze-${url}`, url, badge: badge ?? g.items.length };
+}
+
 /** Items still pending today whose time has already come (for the app-icon badge). */
 function pendingDueCount(reminders, logsById, slotTimes, day) {
   let n = 0;
@@ -130,7 +183,8 @@ function pendingDueCount(reminders, logsById, slotTimes, day) {
   }
   for (const r of reminders) {
     if (r.custom_time && r.custom_time <= day.time && !(r.slots || []).length) {
-      n += dueCustom([r], logsById, { ...day, time: r.custom_time }).length;
+      // dueCustom leaves routine items out, so count the item on its own (each routine item is one pending thing)
+      n += dueCustom([{ ...r, routine_id: null }], logsById, { ...day, time: r.custom_time }).length;
     }
   }
   return n;
@@ -279,7 +333,8 @@ function buildWeeklyNotification(sum, lang = 'en') {
 /**
  * Doses whose (time + alertAfter) falls in this tick's window and that aren't ticked (pending, unmarked or
  * missed at check-in — a deliberate skip doesn't alert). Grouped per check-in so one push lists all of them.
- * Returns [{ key, time, items }] — key is the slot or 'custom-<id>' (part of the dedupe key).
+ * Returns [{ key, time, items }]: key is the slot, 'custom-<id>' or 'routine-<routineId>' (part of the dedupe key).
+ * Only medicines are ever shared, so an alert for a routine lists just the medicines in it.
  */
 function familyDue(reminders, logsById, slotTimes, day, alertAfter, windowTimes) {
   if (!alertAfter) return [];
@@ -288,7 +343,7 @@ function familyDue(reminders, logsById, slotTimes, day, alertAfter, windowTimes)
     if (!r.is_active || r.category !== 'medicine' || !runsOn(r, day)) continue;
     const occ = (r.slots || []).length
       ? r.slots.map(slot => ({ key: slot, time: slotTimes?.[slot], logId: `${r.id}__${slot}__${day.date}` }))
-      : r.custom_time ? [{ key: `custom-${r.id}`, time: r.custom_time, logId: `${r.id}__custom__${day.date}` }] : [];
+      : r.custom_time ? [{ key: r.routine_id ? routineKeyOf(r.routine_id) : `custom-${r.id}`, time: r.custom_time, logId: `${r.id}__custom__${day.date}` }] : [];
     for (const o of occ) {
       if (!o.time) continue;
       const at = toMin(o.time) + alertAfter;
@@ -333,7 +388,8 @@ function remindAgainFor(r, profileFollowUp) {
 }
 
 /**
- * Repeats due right now, grouped per check-in key ('after_dinner' | 'custom-<id>').
+ * Repeats due right now, grouped per check-in key ('after_dinner' | 'custom-<id>' | 'routine-<routineId>').
+ * A routine group also carries { id, name, time }, ready for buildRoutineFollowUp.
  * A reminder repeats at occurrence + every, + 2×every … up to `times`, only while still pending.
  * Returns [{ key, slot, offset, items }] — offset (minutes after the occurrence) makes the dedupe key unique.
  */
@@ -346,15 +402,17 @@ function repeatsDue(reminders, logsById, slotTimes, day, profileFollowUp) {
     if (!cfg.every) continue;
     const occurrences = (r.slots || []).length
       ? r.slots.map(slot => ({ slot, key: slot, time: slotTimes?.[slot], logId: `${r.id}__${slot}__${day.date}` }))
-      : r.custom_time ? [{ slot: null, key: `custom-${r.id}`, time: r.custom_time, logId: `${r.id}__custom__${day.date}` }] : [];
+      : r.custom_time ? [{ slot: null, key: r.routine_id ? routineKeyOf(r.routine_id) : `custom-${r.id}`, time: r.custom_time, logId: `${r.id}__custom__${day.date}` }] : [];
     for (const o of occurrences) {
       if (!o.time) continue;
       const diff = now - toMin(o.time);
       if (diff <= 0 || diff % cfg.every !== 0 || diff / cfg.every > cfg.times) continue;
       const log = logsById.get(o.logId);
       if (log && log.status !== 'pending') continue;
-      const g = groups.get(o.key) || { key: o.key, slot: o.slot, offset: diff, items: [] };
+      const g = groups.get(o.key) || { key: o.key, slot: o.slot, offset: diff, items: [],
+        ...(!o.slot && r.routine_id && { id: r.routine_id, name: r.routine_name || '', time: o.time }) };
       g.items.push(r);
+      if (g.id) g.items.sort(byRoutineOrder);
       g.offset = Math.min(g.offset, diff);
       groups.set(o.key, g);
     }
@@ -363,6 +421,7 @@ function repeatsDue(reminders, logsById, slotTimes, day, profileFollowUp) {
 }
 
 export {
+  routinePending, dueRoutines, buildRoutineNotification, buildRoutineFollowUp, buildRoutineSnooze,
   remindAgainFor, repeatsDue,
   waterTimes, waterDue, buildWaterNotification, recentTimes, CATCH_UP_MINUTES, weeklySummary, buildWeeklyNotification, familyDue, buildFamilyNotification, buildFamilyStockNotification,
   dosesPerDay, stockStatus, buildStockNotification, buildSnoozeNotification, localNow, runsOn, dueTitles, dueReminders, dueCustom, minusMinutes, pendingDueCount,

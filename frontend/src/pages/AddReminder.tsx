@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import { getTodayIST, formatTime } from '../utils/dateHelpers';
 import { stockStatus, courseEndFromDays, parseDosage } from '../utils/schedule';
 import { t as tr, locale, shortMonth} from '../lib/i18n';
+import RemindAgainField, { initialRemindAgain } from '../components/RemindAgainField';
 
 /** Quick-add templates. Medicine templates set up the PATTERN only — never a medicine name or dose
  *  (the app must not recommend medicines or doses). Habit templates fill everything in. */
@@ -34,8 +35,6 @@ const HABIT_TEMPLATES: Template[] = [
 
 const STOCK_UNITS: StockUnit[] = ['tablets', 'capsules', 'ml', 'doses', 'sachets', 'drops'];
 const LOW_DAYS = Array.from({ length: 14 }, (_, i) => i + 1);   // 1–14 days
-const AGAIN_EVERY = [5, 10, 15, 30];
-const AGAIN_TIMES = [1, 2, 3];
 
 const MEAL_OPTIONS: { value: MealRelation; label: string }[] = [
   { value: 'after',       label: tr('After meal')  },
@@ -166,10 +165,10 @@ function AddReminderForm() {
   const [lowDays,     setLowDays]    = useState(oldStock?.lowDays ?? 5);
   // Remind me again (alarm-style). Existing reminders without their own setting show the Settings default.
   const defaultEvery = profile.follow_up_minutes ?? 15;
-  const initAgain = existing?.remindAgain ?? (defaultEvery > 0 ? { every: defaultEvery, times: existing ? 1 : 2 } : { every: 0, times: 1 });
-  const [againOn,     setAgainOn]    = useState(initAgain.every > 0);
-  const [againEvery,  setAgainEvery] = useState(initAgain.every > 0 ? (AGAIN_EVERY.includes(initAgain.every) ? initAgain.every : 15) : 15);
-  const [againTimes,  setAgainTimes] = useState(Math.min(Math.max(initAgain.times, 1), 3));
+  const [again, setAgain] = useState(() => initialRemindAgain(existing?.remindAgain, defaultEvery, !existing));
+  const { on: againOn, every: againEvery, times: againTimes } = again;
+  // Part of a routine: the routine owns the time, days and repeats (edited on the routine screen).
+  const inRoutine = !!existing?.routineId;
   const [moreOpen,    setMoreOpen]   = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const [appliedTemplate, setAppliedTemplate] = useState<string | null>(null);
@@ -178,7 +177,7 @@ function AddReminderForm() {
   const moreSummary = [
     category === 'medicine' && !sos && courseMode !== 'ongoing' && courseLength ? tr('{n}-day course', { n: courseLength }) : null,
     category === 'medicine' && stockOn ? tr('Refill alert') : null,
-    !sos && againOn ? tr('Remind again every {n} min', { n: againEvery }) : null,
+    !sos && !inRoutine && againOn ? tr('Remind again every {n} min', { n: againEvery }) : null,
     note.trim() ? tr('Note') : null,
   ].filter(Boolean).join(' · ') || (sos ? tr('Refill alert, note') : category === 'medicine' ? tr('Course, refill alert, remind again, note') : tr('Remind again, note'));
 
@@ -277,7 +276,8 @@ function AddReminderForm() {
       isActive:  existing?.isActive ?? true,
       notes:     undefined,
       createdAt: existing?.createdAt ?? new Date().toISOString(),
-      remindAgain: !sos && againOn ? { every: againEvery, times: againTimes } : { every: 0, times: 1 },
+      remindAgain: inRoutine ? existing?.remindAgain : !sos && againOn ? { every: againEvery, times: againTimes } : { every: 0, times: 1 },
+      ...(existing?.routineId && { routineId: existing.routineId, routineName: existing.routineName, routineOrder: existing.routineOrder }),
       ...(category === 'medicine' && {
         medicine: {
           dosage:       dosage.trim() || undefined,
@@ -297,7 +297,8 @@ function AddReminderForm() {
     );
     refreshToday();
     toast.success(isEdit ? tr('Reminder updated!') : tr('Reminder added!'));
-    navigate(familyMode?.backTo ?? '/reminders');
+    if (inRoutine && !familyMode) navigate(-1);   // back to the routine screen
+    else navigate(familyMode?.backTo ?? '/reminders');
   };
 
   return (
@@ -402,7 +403,7 @@ function AddReminderForm() {
       )}
 
       {/* As needed (SOS) */}
-      {category === 'medicine' && (
+      {category === 'medicine' && !inRoutine && (
         <div className="form-group">
           <button type="button" onClick={() => setAsNeeded(v => !v)} aria-pressed={asNeeded}
             className="w-full flex items-center justify-between p-3 rounded-xl border border-gray-200 dark:border-[#3A3A3C] bg-white dark:bg-[#1C1C1E]">
@@ -417,7 +418,13 @@ function AddReminderForm() {
         </div>
       )}
 
-      {!sos && (<>
+      {inRoutine && (
+        <p className="form-group text-xs text-gray-500 dark:text-gray-400 rounded-xl bg-gray-100 dark:bg-[#2C2C2E] px-3 py-2.5">
+          {tr('Part of the routine "{name}". Its time and days are set on the routine.', { name: existing?.routineName ?? '' })}
+        </p>
+      )}
+
+      {!sos && !inRoutine && (<>
       {/* Notification Slots */}
       <div className="form-group" id="field-slots">
         <div className="flex items-baseline justify-between mb-1.5">
@@ -644,50 +651,8 @@ function AddReminderForm() {
           </div>
         )}
 
-        {!sos && (<>
         {/* Remind me again (alarm-style) */}
-        <div className="form-group">
-          <button type="button" onClick={() => setAgainOn(v => !v)} aria-pressed={againOn}
-            className="w-full flex items-center justify-between p-3 rounded-xl border border-gray-200 dark:border-[#3A3A3C] bg-white dark:bg-[#1C1C1E]">
-            <span className="text-left">
-              <span className="block text-sm font-medium text-gray-800 dark:text-gray-100">{tr('Remind me again')}</span>
-              <span className="block text-xs text-gray-400">
-                {againOn ? tr(againTimes > 1 ? 'Every {n} min, {times} more times' : 'Every {n} min, 1 more time', { n: againEvery, times: againTimes }) : tr('Off')}
-              </span>
-            </span>
-            <span className={`w-11 h-6 rounded-full p-0.5 transition-colors flex-shrink-0 ${againOn ? 'bg-brand-600' : 'bg-gray-300 dark:bg-[#3A3A3C]'}`}>
-              <span className={`block w-5 h-5 rounded-full bg-white shadow transition-transform ${againOn ? 'translate-x-5' : ''}`} />
-            </span>
-          </button>
-          {againOn && (
-            <div className="card p-3 mt-2 space-y-3">
-              <div>
-                <label className="text-[11px] text-gray-400 mb-1 block">{tr('Every')}</label>
-                <div className="grid grid-cols-4 gap-1 p-1 rounded-xl bg-gray-100 dark:bg-[#2C2C2E]">
-                  {AGAIN_EVERY.map(m => (
-                    <button key={m} type="button" onClick={() => setAgainEvery(m)}
-                      className={`py-2 rounded-lg text-[13px] font-medium ${againEvery === m ? 'bg-white dark:bg-[#1C1C1E] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
-                      {tr('{n} min', { n: m })}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="text-[11px] text-gray-400 mb-1 block">{tr('How many times')}</label>
-                <div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-gray-100 dark:bg-[#2C2C2E]">
-                  {AGAIN_TIMES.map(n => (
-                    <button key={n} type="button" onClick={() => setAgainTimes(n)}
-                      className={`py-2 rounded-lg text-[13px] font-medium ${againTimes === n ? 'bg-white dark:bg-[#1C1C1E] text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}>
-                      {n}×
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <p className="text-[11px] text-gray-400">{tr('Stops when you tick it or snooze.')}</p>
-            </div>
-          )}
-        </div>
-        </>)}
+        {!sos && !inRoutine && <RemindAgainField on={againOn} every={againEvery} times={againTimes} onChange={setAgain} />}
 
     {/* Note */}
           <div className="form-group">

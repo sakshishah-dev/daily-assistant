@@ -9,6 +9,30 @@ export interface ReminderRow {
   once_date: string | null; notes: string | null; is_active: boolean;
   medicine: Reminder['medicine'] | null; created_at: string;
   remind_again?: { every: number; times: number } | null;
+  routine_id?: string | null; routine_name?: string | null; routine_order?: number | null;
+}
+
+/** Columns added by later migrations. If one is missing on the server, the rows are saved without it. */
+const OPTIONAL_REMINDER_COLUMNS: { match: RegExp; columns: string[] }[] = [
+  { match: /remind_again/, columns: ['remind_again'] },
+  { match: /routine_(id|name|order)/, columns: ['routine_id', 'routine_name', 'routine_order'] },
+];
+
+/** Upsert reminder rows, retrying without the columns whose migration has not been run yet. */
+export async function upsertReminderRows<E extends { message: string }>(
+  rows: Record<string, unknown>[],
+  send: (rows: Record<string, unknown>[]) => PromiseLike<{ error: E | null }>,
+): Promise<E | null> {
+  let payload = rows;
+  let { error } = await send(payload);
+  for (let i = 0; error && i < OPTIONAL_REMINDER_COLUMNS.length; i++) {
+    const message = error.message;
+    const hit = OPTIONAL_REMINDER_COLUMNS.find(o => o.match.test(message));
+    if (!hit) break;
+    payload = payload.map(r => { const c = { ...r }; for (const k of hit.columns) delete c[k]; return c; });
+    ({ error } = await send(payload));
+  }
+  return error;
 }
 
 export function reminderToRow(r: Reminder): ReminderRow {
@@ -18,6 +42,7 @@ export function reminderToRow(r: Reminder): ReminderRow {
     repeat_days: r.repeatDays ?? [], once_date: r.date ?? null, notes: r.notes ?? null,
     is_active: r.isActive, medicine: r.medicine ?? null, created_at: r.createdAt,
     ...(r.remindAgain !== undefined && { remind_again: r.remindAgain }),
+    ...(r.routineId !== undefined && { routine_id: r.routineId, routine_name: r.routineName ?? null, routine_order: r.routineOrder ?? 0 }),
   };
 }
 
@@ -29,6 +54,7 @@ export function rowToReminder(row: ReminderRow): Reminder {
     date: row.once_date ?? undefined, notes: row.notes ?? undefined, isActive: row.is_active,
     medicine: row.medicine ?? undefined, createdAt: row.created_at,
     remindAgain: row.remind_again ?? undefined,
+    ...(row.routine_id && { routineId: row.routine_id, routineName: row.routine_name ?? '', routineOrder: row.routine_order ?? 0 }),
   };
 }
 

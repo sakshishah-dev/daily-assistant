@@ -8,6 +8,7 @@ import {
   localNow, dueReminders, dueCustom, pendingDueCount, stockStatus, repeatsDue, waterDue, buildWaterNotification, recentTimes, weeklySummary, buildWeeklyNotification, familyDue, buildFamilyNotification, buildFamilyStockNotification,
   buildSlotNotification, buildSlotFollowUp, buildCustomNotification, buildCustomFollowUp,
   buildStockNotification, buildSnoozeNotification, SLOT_LABELS,
+  routinePending, dueRoutines, buildRoutineNotification, buildRoutineFollowUp, buildRoutineSnooze,
 } from './scheduleLogic.js';
 
 let vapidReady = false;
@@ -60,6 +61,7 @@ export async function sendToUser(userId, payload, devices) {
  * Runs every minute. For each user with notifications on, in *their* timezone:
  *  • a slot time is now            → send that slot's pending items
  *  • a custom-time reminder is now → send it
+ *  • a routine's time is now       → ONE notification listing its pending items
  *  • N minutes after either (N = profile.follow_up_minutes, 0 = off) and still pending → one follow-up
  * Every send carries the app-icon badge count (pending items whose time has come).
  */
@@ -202,9 +204,25 @@ export async function checkAndSend() {
       }
     }
 
+    // Routines: one notification for the whole group (its items are exact-time reminders sharing routine_id).
+    for (const t of recent) {
+      for (const g of dueRoutines(rems, logsById, { ...day, time: t })) {
+        if (await send(p.id, day.date, `routine:${g.id}`, buildRoutineNotification(g, badge(), L), `routine ${t} (${g.items.length})`)) justSent.add(g.key);
+      }
+    }
+
     // Snoozed check-ins that are due now: send only if something is still pending.
     for (const z of dueSnoozes.filter(z => z.user_id === p.id)) {
       let due = [], label = 'Reminder';   // (translated in buildSnoozeNotification)
+      if (z.key.startsWith('routine-')) {
+        const g = routinePending(rems, logsById, day, z.key.slice(8));
+        if (!g) continue;
+        await claim(p.id, day.date, `nomore:${z.key}`);   // a snoozed reminder replaces any further repeats today
+        stopped.add(`${p.id}|${z.key}`);
+        const sent = await sendToUser(p.id, buildRoutineSnooze(g, badge(), L), devicesByUser.get(p.id));
+        console.log(`[scheduler] snoozed ${z.key} → ${short(p.id)} (${sent} devices)`);
+        continue;
+      }
       if (z.key.startsWith('custom-')) {
         const r = rems.find(x => x.id === z.key.slice(7));
         if (r && r.custom_time) due = dueCustom([r], logsById, { ...day, time: r.custom_time });
@@ -229,7 +247,8 @@ export async function checkAndSend() {
         const key = `again:${g.key}:${g.offset}`;
         if (!(await claim(p.id, day.date, key))) { repeated.add(g.key); continue; }   // newest already sent → don't resend older
         repeated.add(g.key);
-        const payload = g.slot ? buildSlotFollowUp(g.slot, g.items, badge(), L) : buildCustomFollowUp(g.items[0], badge(), L);
+        const payload = g.slot ? buildSlotFollowUp(g.slot, g.items, badge(), L)
+          : g.id ? buildRoutineFollowUp(g, badge(), L) : buildCustomFollowUp(g.items[0], badge(), L);
         const sent = await sendToUser(p.id, payload, devicesByUser.get(p.id));
         console.log(`[scheduler] remind again ${g.key} +${g.offset}m → ${short(p.id)} (${sent} devices)`);
       }

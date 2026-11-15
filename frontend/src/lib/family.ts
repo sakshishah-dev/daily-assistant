@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { reminderToRow, rowToReminder, logToRow, rowToLog, type ReminderRow, type LogRow } from './sync';
+import { reminderToRow, rowToReminder, upsertReminderRows, logToRow, rowToLog, type ReminderRow, type LogRow } from './sync';
 import type { Reminder, TaskInstance, NotificationSlotTimes } from '../types';
 import { APP_URL } from './admin';
 import { isDemo, demoGet, demoSet, DemoOnly } from './demo';
@@ -120,8 +120,7 @@ export const family = {
     }
     const now = new Date().toISOString();
     const rows = list.map(r => ({ ...reminderToRow({ ...r, category: 'medicine' }), user_id: ownerId, updated_at: now }));
-    let { error } = await supabase.from('reminders').upsert(rows, { onConflict: 'user_id,id' });
-    if (error && /remind_again/.test(error.message)) ({ error } = await supabase.from('reminders').upsert(rows.map(({ remind_again: _o, ...r }) => r), { onConflict: 'user_id,id' }));
+    const error = await upsertReminderRows(rows, r => supabase.from('reminders').upsert(r, { onConflict: 'user_id,id' }));
     fail(error);
   },
   async deleteReminder(ownerId: string, id: string) {

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Check, AlarmClock } from 'lucide-react';
+import { ArrowLeft, Check, AlarmClock, Layers } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useApp } from '../context/AppContext';
 import { NOTIFICATION_SLOTS, CATEGORIES } from '../utils/constants';
@@ -11,12 +11,14 @@ import { Skeleton, SkeletonList } from '../components/ui/Skeleton';
 import { celebrate } from '../components/ui/Celebration';
 import type { NotificationSlot } from '../types';
 import { snooze, getSnooze, cancelSnooze } from '../lib/snooze';
+import { routineIdFromKey } from '../lib/routines';
 import { t as tr, locale, timeOf} from '../lib/i18n';
 
 const CATEGORY_ORDER = { medicine: 0, habit: 1, routine: 2, task: 3 } as const;
 
 /**
- * Per-reminder check-in, opened by tapping a notification (/checkin/after_dinner, /checkin/custom-<id>).
+ * Per-reminder check-in, opened by tapping a notification (/checkin/after_dinner, /checkin/custom-<id>,
+ * /checkin/routine-<routineId> for a whole routine).
  * Tick what you've done → Submit. Anything left unticked is saved as "missed".
  */
 export default function CheckIn() {
@@ -29,13 +31,21 @@ export default function CheckIn() {
   useEffect(() => { getSnooze(key).then(d => { setSnoozedUntil(d); setSnoozeKnown(true); }); }, [key]);
 
   const isCustom = key.startsWith('custom-');
-  const slot = (isCustom ? null : key) as NotificationSlot | null;
+  const routineId = routineIdFromKey(key);
+  const slot = (isCustom || routineId ? null : key) as NotificationSlot | null;
   const slotDef = slot ? NOTIFICATION_SLOTS[slot] : undefined;
 
-  const items = useMemo(() => todayTasks.filter(t =>
-    isCustom ? (!t.slot && t.reminderId === key.slice(7)) : t.slot === slot)
-    .sort((a, b) => CATEGORY_ORDER[a.category] - CATEGORY_ORDER[b.category]), [todayTasks, key, isCustom, slot]);
   const reminderById = useMemo(() => new Map(reminders.map(r => [r.id, r])), [reminders]);
+  const items = useMemo(() => {
+    // A routine lists its items in the order set on the routine screen.
+    if (routineId) {
+      return todayTasks.filter(t => !t.slot && reminderById.get(t.reminderId)?.routineId === routineId)
+        .sort((a, b) => (reminderById.get(a.reminderId)?.routineOrder ?? 0) - (reminderById.get(b.reminderId)?.routineOrder ?? 0));
+    }
+    return todayTasks.filter(t => isCustom ? (!t.slot && t.reminderId === key.slice(7)) : t.slot === slot)
+      .sort((a, b) => CATEGORY_ORDER[a.category] - CATEGORY_ORDER[b.category]);
+  }, [todayTasks, key, isCustom, slot, routineId, reminderById]);
+  const routineName = routineId ? reminders.find(r => r.routineId === routineId)?.routineName : undefined;
 
   const [checked, setChecked] = useState<Set<string> | null>(null);
   // Initialise once items are available (they may load a moment after opening from a notification).
@@ -46,8 +56,8 @@ export default function CheckIn() {
     setChecked(next);
   };
 
-  const label = slotDef ? slotDef.label : tr('Reminder');
-  const SlotIcon = slotDef ? slotDef.icon : AlarmClock;
+  const label = slotDef ? slotDef.label : routineId ? (routineName || tr('Routine')) : tr('Reminder');
+  const SlotIcon = slotDef ? slotDef.icon : routineId ? Layers : AlarmClock;
   const time = slot ? settings.notificationSlotTimes[slot] : items[0]?.scheduledTime;
   const alreadyDone = items.length > 0 && items.every(t => t.status !== 'pending');
   const dateLabel = new Date(getTodayIST() + 'T00:00:00').toLocaleDateString(locale(), { weekday: 'long', day: 'numeric', month: 'long' });

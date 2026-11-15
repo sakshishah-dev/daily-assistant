@@ -46,7 +46,7 @@ C:\Users\LPI73\daily-assistant\
 ├── frontend/          React PWA
 │   ├── src/
 │   │   ├── components/ui/  ProgressRing, EmptyState, Celebration (celebrate('msg'))
-│   │   ├── pages/     Home(Today), Refill, WaterSetup, WaterAdd, Report, Invites, About, Setup, Guide, Family*, Tasks, TasksWeek, ManageTasks, Reminders, AddReminder, Progress(Reports+Calendar),
+│   │   ├── pages/     Home(Today), Refill, WaterSetup, WaterAdd, Report, Invites, About, Setup, Guide, Family*, Tasks, TasksWeek, ManageTasks, Reminders, AddReminder, RoutineEditor, Progress(Reports+Calendar),
 │   │   │              Settings, Login, Welcome (onboarding), Privacy, Feedback
 │   │   ├── context/   AuthContext.tsx (session), AppContext.tsx (per-user data + sync engine)
 │   │   ├── hooks/     usePushNotifications.ts (multi-device, register_push_device RPC)
@@ -76,7 +76,23 @@ C:\Users\LPI73\daily-assistant\
   on top of a first notification sent in the same tick; water sends only the latest due time. Older than 5 min → skipped.
   Tests: npm run test:api + scratchpad scheduler scenarios (33 cases, Nov 2026 audit).
 - **Custom-time reminders** (`customTime`, no slots) are pushed by the scheduler too (dedupe key `custom:<reminderId>`)
-- **Check-in** (`/checkin/:slot` or `/checkin/custom-<id>`): notification tap opens it; ticked → completed, unticked →
+- **Routines** (16 Nov 2026; migration 2026-11-16-routines.sql): a named group with its OWN time and repeat days, ONE notification
+  and one check-in, e.g. "Morning routine 7:00 AM" = medicine + hot water + walk + protein shake + coffee. A routine is NOT a table:
+  it is a set of normal exact-time reminders (slots [], customTime = routine time, same repeat / isActive / remindAgain) that share
+  `routine_id` + `routine_name` (+ `routine_order` = position). Dose logs stay `<reminderId>__custom__<date>`, so scores, missed
+  logic, stock, doctor report, weekly summary and family sharing need no change. Only GROUPING differs, always by key
+  `routine-<routineId>`: Today group (lib/routines.ts `routinesOf`, `routineKey`), `/checkin/routine-<id>`, snooze key, scheduler
+  (`dueRoutines` / `routinePending` / `buildRoutineNotification|FollowUp|Snooze`; dedupe claim `routine:<id>`, tag `da-routine-<id>`,
+  repeats `again:routine-<id>:<offset>`, family alert `care:<link>:routine-<id>` listing only its medicines). `dueCustom` skips routine
+  items. Screens: `/routines/add`, `/routines/edit/:id` (pages/RoutineEditor.tsx: name, time, every day / weekdays / some days,
+  items with up/down arrows, remind again via components/RemindAgainField, pause, delete); Reminders tab has "Add routine" and shows
+  ONE card per routine (items are never listed one by one). Save replaces all members in one `setReminders` call. A medicine inside a
+  routine opens the normal edit form for "Refill alert and course"; there its time, days, SOS and remind-again are hidden (the routine
+  owns them) and AddReminder keeps the routine fields. Routines are for your own account only (family followers still see and manage
+  the medicines in them as single medicines). The routine NAME is the user's text: never passed through tr()/t().
+  If the migration has not been run, sync saves the rows without the routine columns (`upsertReminderRows` in lib/sync.ts, same idea
+  as remind_again) and snoozing a routine fails with the usual "Couldn't snooze" message (snoozes.key check).
+- **Check-in** (`/checkin/:slot`, `/checkin/custom-<id>` or `/checkin/routine-<routineId>`): notification tap opens it; ticked → completed, unticked →
   `skipped` with `skippedReason: 'missed'` (counts as NOT done in stats; deliberate skips stay excused — see isExcused/isMissed)
 - **Remind me again** (alarm-style, per reminder): `reminders.remind_again = {every: 0|5|10|15|30, times: 1..3}`
   (migration 2026-11-10-remind-again.sql). NULL → profile default `follow_up_minutes` (0/15/30/60) as ONE repeat.
@@ -244,7 +260,7 @@ C:\Users\LPI73\daily-assistant\
 - Invite a tester: in the app → Settings → Invite people (owner only). Fallback SQL: `insert into allowed_emails (email, note) values ('x@gmail.com', 'who');` (lowercase)
 - Invited so far: sakshi@gearedfinance.com.au, sakshishah5704@gmail.com (owner)
 - Setup progress (Nov 2026): Gmail app password ✅, SMTP ✅, email templates ✅ (OTP length 6), schema ✅, owner invites ✅
-- Migrations run in prod: 2026-11-09-follow-up.sql ✅ · 2026-11-09-snooze.sql ✅ · cron-1 + cron-2 ✅ · 2026-11-10-remind-again.sql ✅ · 2026-11-10-water.sql (confirm it was run) · 2026-11-11-holiday-mode.sql (run? confirm) · 2026-11-12-invites-and-errors.sql (confirm) · 2026-11-14-family.sql ✅ · 2026-11-15-language.sql (run? confirm)
+- Migrations run in prod: 2026-11-09-follow-up.sql ✅ · 2026-11-09-snooze.sql ✅ · cron-1 + cron-2 ✅ · 2026-11-10-remind-again.sql ✅ · 2026-11-10-water.sql (confirm it was run) · 2026-11-11-holiday-mode.sql (run? confirm) · 2026-11-12-invites-and-errors.sql (confirm) · 2026-11-14-family.sql ✅ · 2026-11-15-language.sql (run? confirm) · 2026-11-16-routines.sql (run? confirm)
 - Feedback: Table Editor → feedback
 
 ## VAPID keys (public key only — private key lives only in Vercel env VAPID_PRIVATE_KEY)
@@ -393,7 +409,7 @@ The **service-role key still never goes in the frontend.**
 
 ### Feature ideas — side list (build only after Phase 6, Sakshi picks)
 Status Nov 2026: ✅ built — 1 (skip insights, in Sunday summary), 3 (doctor report), 5 (fix past days), 7, 8, 9, 13,
-plus SOS medicines, holiday mode, water. Open: 2, 10, 12 (11 Hindi+Gujarati ✅ built 15 Nov), tapering doses, people without a phone. Family (4/6/14) ✅ built 14 Nov.
+plus SOS medicines, holiday mode, water, routines (16 Nov). Open: 2, 10, 12 (11 Hindi+Gujarati ✅ built 15 Nov), tapering doses, people without a phone. Family (4/6/14) ✅ built 14 Nov.
 Sakshi's original list:
 1. Skip pattern insights — "you always miss Monday mornings" weekly insight card
 2. Grouped slot card with meal context — one "After Dinner" card showing all meds with before/after/with meal labels
