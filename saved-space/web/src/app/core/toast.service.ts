@@ -21,6 +21,7 @@ export class ToastService {
   }
 
   confirm(title: string, message: string, confirmLabel = 'Delete'): Promise<boolean> {
+    this.confirmRequest()?.resolve(false); // a newer question replaces an unanswered one
     return new Promise((resolve) => this.confirmRequest.set({ title, message, confirmLabel, resolve }));
   }
 

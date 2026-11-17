@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 
 /** Line icons (24 x 24, stroke only). Each value is the inside of an svg. */
 const ICONS: Record<string, string> = {
@@ -38,5 +39,7 @@ const ICONS: Record<string, string> = {
 export class Icon {
   readonly name = input.required<string>();
   readonly size = input(20);
-  protected readonly body = computed(() => ICONS[this.name()] ?? ICONS['folder']);
+  private readonly sanitizer = inject(DomSanitizer);
+  // The markup comes only from the ICONS constant above (never from user data), so it is safe to trust.
+  protected readonly body = computed(() => this.sanitizer.bypassSecurityTrustHtml(ICONS[this.name()] ?? ICONS['folder']));
 }

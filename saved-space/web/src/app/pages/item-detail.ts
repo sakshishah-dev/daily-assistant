@@ -106,12 +106,12 @@ import { Empty, Skeleton } from '../ui/states';
     .open { margin-bottom: 4px; }
     .small { font-size: 13px; margin: 6px 0 0; }
     .hint { margin-top: 12px; background: var(--accent-soft); border-color: var(--accent-soft); }
-    .step { display: flex; align-items: flex-start; gap: 10px; padding: 8px 8px 8px 12px; margin-bottom: 8px; }
+    .step { display: grid; grid-template-columns: 24px 1fr; column-gap: 10px; padding: 8px 8px 4px 12px; margin-bottom: 8px; }
     .step input[type='checkbox'] { margin-top: 10px; }
-    .step textarea { flex: 1; min-width: 0; border-color: transparent; padding: 10px 6px; }
+    .step textarea { min-width: 0; border-color: transparent; padding: 10px 6px; }
     .step textarea:focus { border-color: var(--line); }
     .struck { text-decoration: line-through; color: var(--muted); }
-    .step-actions { display: flex; flex: none; }
+    .step-actions { grid-column: 2; display: flex; justify-content: flex-end; }
     .step-actions .btn-icon { width: 36px; min-height: 40px; }
     .add-step { display: flex; align-items: flex-start; gap: 10px; padding: 8px 12px; border-style: dashed; }
     .add-step ss-icon { margin-top: 12px; color: var(--accent); }

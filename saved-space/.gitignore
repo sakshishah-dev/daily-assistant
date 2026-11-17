@@ -9,3 +9,4 @@ dist/
 local.settings.json
 test-results/
 playwright-report/
+publish/
