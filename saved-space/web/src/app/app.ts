@@ -1,12 +1,23 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { SwUpdate } from '@angular/service-worker';
+import { InstallService } from './core/install.service';
 
 @Component({
-  imports: [RouterOutlet],
   selector: 'app-root',
-  styleUrl: './app.css',
-  templateUrl: './app.html',
+  imports: [RouterOutlet],
+  template: `<router-outlet />`,
 })
 export class App {
-  protected readonly title = signal('web');
+  constructor() {
+    inject(InstallService); // starts listening for the install prompt as early as possible
+    const sw = inject(SwUpdate);
+    if (sw.isEnabled) {
+      // A new version is picked up on open: reload once so the phone never runs an old copy.
+      sw.versionUpdates.subscribe((e) => {
+        if (e.type === 'VERSION_READY') document.location.reload();
+      });
+      void sw.checkForUpdate().catch(() => undefined);
+    }
+  }
 }

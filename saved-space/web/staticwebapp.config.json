@@ -1,0 +1,18 @@
+{
+  "platform": { "apiRuntime": "dotnet-isolated:10.0" },
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/api/*", "/icons/*", "/*.{css,js,json,png,jpg,svg,ico,webmanifest,map,txt}"]
+  },
+  "routes": [
+    { "route": "/ngsw-worker.js", "headers": { "cache-control": "no-cache" } },
+    { "route": "/ngsw.json", "headers": { "cache-control": "no-cache" } },
+    { "route": "/index.html", "headers": { "cache-control": "no-cache" } }
+  ],
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https://*.supabase.co; frame-src https://www.youtube-nocookie.com https://www.instagram.com; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'"
+  }
+}
