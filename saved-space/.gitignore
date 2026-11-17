@@ -1,0 +1,11 @@
+bin/
+obj/
+node_modules/
+dist/
+.angular/
+*.user
+.env
+.env.*
+local.settings.json
+test-results/
+playwright-report/
