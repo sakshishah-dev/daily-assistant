@@ -8,7 +8,7 @@ import {
   localNow, dueReminders, dueCustom, pendingDueCount, stockStatus, repeatsDue, waterDue, buildWaterNotification, recentTimes, weeklySummary, buildWeeklyNotification, familyDue, buildFamilyNotification, buildFamilyStockNotification,
   buildSlotNotification, buildSlotFollowUp, buildCustomNotification, buildCustomFollowUp,
   buildStockNotification, buildSnoozeNotification, SLOT_LABELS,
-  routinePending, dueRoutines, buildRoutineNotification, buildRoutineFollowUp, buildRoutineSnooze,
+  routinePending, dueRoutines, buildRoutineNotification, buildRoutineFollowUp, buildRoutineSnooze, PUSH_OPTIONS,
 } from './scheduleLogic.js';
 
 let vapidReady = false;
@@ -39,7 +39,7 @@ export async function sendToUser(userId, payload, devices) {
       await webpush.sendNotification(
         { endpoint: d.endpoint, keys: { p256dh: d.p256dh, auth: d.auth } },
         JSON.stringify(payload),
-        { TTL: 60 * 60 },   // drop if the phone is offline for over an hour
+        PUSH_OPTIONS,   // high urgency + 1 hour TTL (see scheduleLogic.js)
       );
       sent++;
       await admin().from('push_devices').update({ last_success_at: new Date().toISOString() }).eq('id', d.id);

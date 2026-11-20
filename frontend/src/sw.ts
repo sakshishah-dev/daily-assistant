@@ -28,15 +28,21 @@ self.addEventListener('push', (event: PushEvent) => {
   const badge = typeof payload.badge === 'number' && payload.badge > 0 && nav.setAppBadge
     ? nav.setAppBadge(payload.badge).catch(() => {}) : Promise.resolve();
 
+  // renotify + vibrate are valid in browsers but missing from TypeScript's built-in type
+  const options: NotificationOptions & { renotify?: boolean; vibrate?: number[] } = {
+    body:              payload.body ?? 'You have a reminder',
+    icon:              '/icon-192.png',
+    badge:             '/badge-96.png',
+    tag:               payload.tag  ?? 'daily-assistant',
+    requireInteraction: false,
+    // a repeat or follow-up with the same tag replaces the earlier one AND alerts again (otherwise Android replaces it silently)
+    renotify:          true,
+    vibrate:           [200, 100, 200],
+    data:              { url: payload.url ?? '/' },
+  };
+
   event.waitUntil(Promise.all([badge,
-    self.registration.showNotification(payload.title ?? 'Daily Assistant', {
-      body:              payload.body ?? 'You have a reminder',
-      icon:              '/icon-192.png',
-      badge:             '/badge-96.png',
-      tag:               payload.tag  ?? 'daily-assistant',
-      requireInteraction: false,
-      data:              { url: payload.url ?? '/' },
-    })
+    self.registration.showNotification(payload.title ?? 'Daily Assistant', options),
   ]));
 });
 

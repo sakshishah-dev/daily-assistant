@@ -337,7 +337,6 @@ const dict: Record<string, string> = {
   "Last day": "છેલ્લો દિવસ",
   "Last updated November 2026": "છેલ્લો ફેરફાર નવેમ્બર 2026",
   "Last {n} days": "છેલ્લા {n} દિવસ",
-  "Late": "મોડું",
   "Later": "પછી",
   "Let family follow you": "પરિવારને તમને ફોલો કરવા દો",
   "Let someone follow my medicines": "કોઈને મારી દવાઓ ફોલો કરવા દો",
@@ -957,5 +956,8 @@ const dict: Record<string, string> = {
   "Put several things in one group with its own time, like a morning routine: medicine, hot water, walk, protein shake, coffee. You get ONE notification that lists them all, tick them together, and edit, pause or delete the whole group at once. Medicines in a routine keep their dose, meal and refill alerts.": "ઘણાં કામ પોતાના અલગ સમયવાળા એક જૂથમાં મૂકો, જેમ કે સવારનું રૂટિન: દવા, ગરમ પાણી, સેર, પ્રોટીન શેક, કોફી. બધાંની યાદીવાળું એક જ નોટિફિકેશન આવે છે, તમે એને સાથે ટિક કરો છો, અને આખા જૂથને એકસાથે બદલી, અટકાવી કે કાઢી શકો છો. રૂટિનની દવાઓના ડોઝ, જમણનો સમય અને રિફિલ એલર્ટ જળવાઈ રહે છે.",
   "Reminders → Add routine": "રિમાઇન્ડર → રૂટિન ઉમેરો",
   "Today shows the routine as one group with its time; one notification arrives and opens a check-in with every item": "‘આજે’માં રૂટિન એના સમય સાથે એક જૂથમાં દેખાય છે; એક નોટિફિકેશન આવે છે અને બધાં કામવાળું ચેક-ઇન ખોલે છે",
+  "On Android, if reminders arrive late or only when you open the app: **Settings → Apps → Chrome → Battery → Unrestricted**. Do the same for Daily Assistant if it is listed.": "Android પર જો રિમાઇન્ડર મોડા આવે કે ફક્ત એપ ખોલો ત્યારે આવે: **Settings → Apps → Chrome → Battery → Unrestricted**. Daily Assistant યાદીમાં હોય તો એના માટે પણ એમ જ કરો.",
+  "Sending…": "મોકલી રહ્યા છીએ…",
+  "Send a test notification": "ટેસ્ટ નોટિફિકેશન મોકલો",
 };
 export default dict;
