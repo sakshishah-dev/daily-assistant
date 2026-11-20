@@ -1,0 +1,32 @@
+name: Saved Space tests
+
+on:
+  pull_request:
+    paths: ['saved-space/**', '.github/workflows/saved-space-*.yml']
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: saved-space/api } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '10.0.x' }
+      - run: dotnet test --configuration Release
+      - run: dotnet publish SavedSpace.Functions --configuration Release --output publish
+
+  web:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: saved-space/web } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: saved-space/web/package-lock.json }
+      - run: npm ci
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
+      - name: Production build and secret scan
+        env:
+          SS_SUPABASE_KEY: sb_publishable_ci_placeholder
+        run: npm run build && npm run check:bundle

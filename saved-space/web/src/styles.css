@@ -1,0 +1,88 @@
+:root {
+  --bg: #f6f4ef;
+  --card: #ffffff;
+  --ink: #1d2420;
+  --muted: #5d6762;
+  --line: #e3dfd6;
+  --accent: #2d6a4f;
+  --accent-ink: #ffffff;
+  --accent-soft: #e2efe8;
+  --danger: #b3261e;
+  --warn-soft: #fbefd5;
+  --warn-ink: #7a4b00;
+  --bar: #ffffff;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+/* The signed-in app is a fixed frame: the document never scrolls, only .app-scroll does. */
+html, body { height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: var(--bg); }
+body { font: 16px/1.45 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: var(--ink); -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+
+.app-shell { position: fixed; inset: 0; display: flex; flex-direction: column; background: var(--bg); }
+.app-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; padding-top: var(--safe-top); }
+.bottom-nav { flex: none; display: flex; background: var(--bar); border-top: 1px solid var(--line); padding-bottom: var(--safe-bottom); }
+.bottom-nav a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px 6px; font-size: 12px; color: var(--muted); text-decoration: none; min-height: 52px; justify-content: center; }
+.bottom-nav a.active { color: var(--accent); font-weight: 600; }
+
+.page { padding: 16px 16px 24px; max-width: 640px; margin: 0 auto; }
+.page.tab { padding-top: 24px; }
+.page-header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 16px; }
+.page-title { margin: 0; font-size: 22px; line-height: 1.25; font-weight: 700; flex: 1; min-width: 0; overflow-wrap: anywhere; padding-top: 6px; }
+h2 { font-size: 15px; margin: 20px 0 8px; color: var(--muted); font-weight: 600; text-transform: none; }
+p { margin-top: 0; }
+.muted { color: var(--muted); }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+.card.pad { padding: 14px; }
+
+button, .btn { font: inherit; cursor: pointer; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--ink); padding: 10px 16px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+button:disabled { opacity: 0.5; cursor: default; }
+.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn-danger { color: var(--danger); border-color: var(--danger); }
+.btn-block { width: 100%; }
+.btn-icon { width: 44px; min-height: 44px; padding: 0; flex: none; }
+.btn-ghost { border-color: transparent; background: transparent; }
+.btn-small { min-height: 40px; padding: 6px 12px; }
+
+input, textarea, select { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; width: 100%; min-height: 44px; }
+input[type='checkbox'] { width: 24px; height: 24px; min-height: 0; padding: 0; accent-color: var(--accent); }
+textarea { resize: none; overflow: hidden; line-height: 1.4; overflow-wrap: anywhere; display: block; }
+input:focus, textarea:focus, select:focus, button:focus-visible, a:focus-visible { outline: 3px solid #8cbfa6; outline-offset: 1px; }
+label.field { display: block; font-size: 14px; color: var(--muted); margin: 14px 0 6px; font-weight: 600; }
+
+/* Bottom save bar: sticky inside the scroller, solid, sits above the tab bar. */
+.save-bar { position: sticky; bottom: 0; background: var(--bar); border-top: 1px solid var(--line); padding: 12px 16px calc(12px + var(--safe-bottom)); margin: 24px -16px -24px; display: flex; gap: 10px; }
+.save-bar > * { flex: 1; }
+.no-tabs .save-bar { padding-bottom: calc(12px + var(--safe-bottom)); }
+
+.pill { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--line); color: var(--ink); }
+.pill.doing { background: var(--warn-soft); color: var(--warn-ink); }
+.pill.done { background: var(--accent-soft); color: var(--accent); }
+
+.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; min-height: 40px; padding: 6px 14px; border-radius: 999px; }
+.chip[aria-pressed='true'] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+.segmented { display: flex; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--card); }
+.segmented button { flex: 1; border: 0; border-radius: 0; background: transparent; }
+.segmented button[aria-pressed='true'] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.segmented button + button { border-left: 1px solid var(--line); }
+
+.error { color: var(--danger); font-size: 14px; margin: 8px 0 0; }
+.banner { background: var(--warn-soft); color: var(--warn-ink); padding: 8px 16px; font-size: 14px; text-align: center; }
+
+.toast { position: fixed; left: 16px; right: 16px; bottom: calc(76px + var(--safe-bottom)); background: #1d2420; color: #fff; padding: 12px 16px; border-radius: 12px; z-index: 50; text-align: center; font-size: 14px; max-width: 608px; margin: 0 auto; }
+.sheet-back { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); z-index: 60; display: flex; align-items: flex-end; justify-content: center; }
+.sheet { background: var(--card); width: 100%; max-width: 640px; border-radius: 18px 18px 0 0; padding: 20px 16px calc(16px + var(--safe-bottom)); }
+.sheet h3 { margin: 0 0 6px; font-size: 18px; }
+.sheet .actions { display: flex; gap: 10px; margin-top: 16px; }
+.sheet .actions > * { flex: 1; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+a { color: var(--accent); }
+@media print { .app-shell { position: static; } html, body { overflow: visible; } }
