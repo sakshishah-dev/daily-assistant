@@ -72,11 +72,13 @@ export default function Setup() {
             {status === 'requesting' ? t('Asking…') : t('Turn on notifications')}
           </button>
         )}
+        {!isIOS() && !on && status !== 'checking' && <p className="text-xs text-gray-400 mt-3"><Rich text={t('On Android, if reminders arrive late or only when you open the app: **Settings → Apps → Chrome → Battery → Unrestricted**. Do the same for Daily Assistant if it is listed.')} /></p>}
+        {!isIOS() && on && <p className="text-xs text-gray-400 mt-3"><Rich text={t('On Android, if reminders arrive late or only when you open the app: **Settings → Apps → Chrome → Battery → Unrestricted**. Do the same for Daily Assistant if it is listed.')} /></p>}
       </Step>
 
       <Step n={3} done={tested} title={t('Send yourself a test')}>
         {on ? (
-          <button onClick={test} disabled={testing} className="btn-secondary w-full disabled:opacity-50">{testing ? 'Sending…' : 'Send a test notification'}</button>
+          <button onClick={test} disabled={testing} className="btn-secondary w-full disabled:opacity-50">{testing ? t('Sending…') : t('Send a test notification')}</button>
         ) : status === 'checking' ? <Skeleton className="h-11 w-full rounded-2xl" /> : <p className="text-sm text-gray-400">{t('After step 2.')}</p>}
       </Step>
 

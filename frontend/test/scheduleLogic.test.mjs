@@ -266,3 +266,10 @@ console.log('scheduleLogic: all tests passed');
   assert.strictEqual(famN.tag, 'da-family-L1-routine-rt1');
   console.log('scheduleLogic: routine tests passed');
 }
+
+// Push options: Android holds back 'normal' urgency messages while the phone is idle, so reminders must be 'high'.
+{
+  const { PUSH_OPTIONS } = await import('../api/_lib/scheduleLogic.js');
+  assert.equal(PUSH_OPTIONS.urgency, 'high');
+  assert.equal(PUSH_OPTIONS.TTL, 3600);
+}

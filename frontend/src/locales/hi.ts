@@ -337,7 +337,6 @@ const dict: Record<string, string> = {
   "Last day": "आख़िरी दिन",
   "Last updated November 2026": "आख़िरी बदलाव नवंबर 2026",
   "Last {n} days": "पिछले {n} दिन",
-  "Late": "देर से",
   "Later": "बाद में",
   "Let family follow you": "परिवार को आपको फ़ॉलो करने दें",
   "Let someone follow my medicines": "किसी को मेरी दवाइयाँ फ़ॉलो करने दें",
@@ -957,5 +956,8 @@ const dict: Record<string, string> = {
   "Put several things in one group with its own time, like a morning routine: medicine, hot water, walk, protein shake, coffee. You get ONE notification that lists them all, tick them together, and edit, pause or delete the whole group at once. Medicines in a routine keep their dose, meal and refill alerts.": "कई काम अपने अलग समय वाले एक समूह में रखें, जैसे सुबह का रूटीन: दवा, गरम पानी, सैर, प्रोटीन शेक, कॉफ़ी। सबकी सूची वाला एक ही नोटिफिकेशन आता है, आप उन्हें साथ में टिक करते हैं, और पूरे समूह को एक साथ बदल, रोक या हटा सकते हैं। रूटीन की दवाइयों की डोज़, खाने का समय और रीफ़िल अलर्ट बने रहते हैं।",
   "Reminders → Add routine": "रिमाइंडर → रूटीन जोड़ें",
   "Today shows the routine as one group with its time; one notification arrives and opens a check-in with every item": "‘आज’ में रूटीन अपने समय के साथ एक समूह में दिखता है; एक नोटिफिकेशन आता है और सारे कामों वाला चेक-इन खोलता है",
+  "On Android, if reminders arrive late or only when you open the app: **Settings → Apps → Chrome → Battery → Unrestricted**. Do the same for Daily Assistant if it is listed.": "Android पर अगर रिमाइंडर देर से आएँ या सिर्फ़ ऐप खोलने पर आएँ: **Settings → Apps → Chrome → Battery → Unrestricted**। अगर Daily Assistant सूची में हो तो उसके लिए भी यही करें।",
+  "Sending…": "भेज रहे हैं…",
+  "Send a test notification": "टेस्ट नोटिफिकेशन भेजें",
 };
 export default dict;

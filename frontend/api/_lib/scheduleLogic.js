@@ -3,6 +3,13 @@
 
 import { tr } from './i18n.js';
 
+/**
+ * Options for every web-push send. urgency 'high' matters on Android: with the default ('normal') Google's push service may hold a
+ * message back while the phone is idle (Doze) and only deliver it when the phone or the app is opened. Reminders are time-critical.
+ * TTL: drop the message if the phone stays offline for over an hour (a stale reminder is worse than none).
+ */
+const PUSH_OPTIONS = { TTL: 60 * 60, urgency: 'high' };
+
 const SLOT_LABELS = {
   morning:      'Morning',
   afternoon:    'Afternoon',
@@ -425,4 +432,4 @@ export {
   remindAgainFor, repeatsDue,
   waterTimes, waterDue, buildWaterNotification, recentTimes, CATCH_UP_MINUTES, weeklySummary, buildWeeklyNotification, familyDue, buildFamilyNotification, buildFamilyStockNotification,
   dosesPerDay, stockStatus, buildStockNotification, buildSnoozeNotification, localNow, runsOn, dueTitles, dueReminders, dueCustom, minusMinutes, pendingDueCount,
-  buildSlotNotification, buildSlotFollowUp, buildCustomNotification, buildCustomFollowUp, reminderLine, SLOT_LABELS };
+  buildSlotNotification, buildSlotFollowUp, buildCustomNotification, buildCustomFollowUp, reminderLine, SLOT_LABELS, PUSH_OPTIONS };
